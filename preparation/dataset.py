@@ -1,5 +1,4 @@
 import numpy as np
-import preparation.utils as utils
 import h5py
 
 
@@ -17,6 +16,9 @@ class Dataset:
 
         self.hdf5_path = hdf5_path
         self.images, self.labels = self.get_hdf5_data()
+
+        self.size = len(self.labels)
+        self.iterations = len(self.labels)//self.batch_size
 
     def __iter__(self):
         return self
@@ -75,7 +77,8 @@ class Dataset:
         if delta == n:
             raise StopIteration
         if 0 < delta:
-            batch_img += self.images[:delta]
+            batch_img = np.concatenate((batch_img, self.images[:delta]), axis=0)
+            batch_labels = np.concatenate((batch_labels, self.labels[:delta]), axis=0)
             self.i = delta
             self.done = True
         return batch_img/255.0, batch_labels
