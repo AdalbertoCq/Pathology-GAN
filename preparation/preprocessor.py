@@ -2,8 +2,6 @@ import os
 import random
 import preparation.utils as utils
 import skimage.io
-import numpy as np
-
 
 class Preprocessor:
     def __init__(self,  patch_h, patch_w, n_channels, dataset, marker,  labels, project_path=os.getcwd()):
