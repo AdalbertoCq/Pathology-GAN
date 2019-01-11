@@ -1,0 +1,6 @@
+*.pyc
+dataset/*
+data model output/*
+run
+.DS_Store
+*.swp
