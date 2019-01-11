@@ -6,7 +6,7 @@ import numpy as np
 
 
 class Preprocessor:
-    def __init__(self,  patch_h, patch_w, n_channels, project_path=os.getcwd()):
+    def __init__(self,  patch_h, patch_w, n_channels, dataset, marker,  labels, project_path=os.getcwd()):
 
         # patches size
         self.patch_h = patch_h
@@ -14,21 +14,27 @@ class Preprocessor:
         self.n_channels = n_channels
 
         # Directories and file name handling.
-        relative_dataset_path = os.path.join('data', 'nki_he')
+        self.dataset_base = dataset
+        self.marker = marker
+        self.dataset_name = '%s_%s' % (self.dataset_base, self.marker)
+        relative_dataset_path = os.path.join('dataset', self.dataset_base)
+        relative_dataset_path = os.path.join(relative_dataset_path, self.marker)
         self.dataset_path = os.path.join(project_path, relative_dataset_path)
         self.sets_file_path = os.path.join(self.dataset_path, 'sets_h%s_w%s' % (patch_h, patch_w))
         self.augmentations_file_path = os.path.join(self.dataset_path, 'augmentations_h%s_w%s' % (patch_h, patch_w))
-        self.pathes_path = os.path.join(relative_dataset_path, 'patches_h%s_w%s' % (patch_h, patch_w))
+        self.pathes_path = os.path.join(self.dataset_path, 'patches_h%s_w%s' % (patch_h, patch_w))
 
-        self.hdf5_train = os.path.join(self.pathes_path, 'hdf5_nki_he_train.h5')
-        self.hdf5_test = os.path.join(self.pathes_path, 'hdf5_nki_he_test.h5')
+        self.hdf5_train = os.path.join(self.pathes_path, 'hdf5_%s_train.h5' % self.dataset_name)
+        self.hdf5_test = os.path.join(self.pathes_path, 'hdf5_%s_test.h5' % self.dataset_name)
         self.hdf5 = [self.hdf5_train, self.hdf5_test]
 
         # Loading labels.
-        label_file = os.path.join(self.dataset_path, 'nki_survival.csv')
-        table = utils.load_csv(label_file)
-        self.label_dict = self.get_label_dict(table)
-        
+        self.labels_flag = labels
+        if self.labels_flag:
+            label_file = os.path.join(self.dataset_path, 'nki_survival.csv')
+            table = utils.load_csv(label_file)
+            self.label_dict = self.get_label_dict(table)
+
         # Loading jpg files.
         filenames = os.listdir(self.dataset_path)
         self.image_filenames = utils.filter_filenames(filenames, extension='.jpg')
@@ -62,8 +68,12 @@ class Preprocessor:
 
     # 
     def get_label(self, filename):
-        patient_id = filename.split('_')[0]
-        return float(self.label_dict[patient_id])
+        if self.labels_flag:
+            patient_id = filename.split('_')[0]
+            label = float(self.label_dict[patient_id])
+        else:
+            label = filename.split('_')[-1]
+        return label
 
     # 
     def append_labels(self, sets):
@@ -160,7 +170,7 @@ class Preprocessor:
             augmentations = utils.load_data(self.augmentations_file_path)
             print('"augmentations" file loaded')
         except FileNotFoundError:
-            augmentations = [[] for _ in range(n_of_sets)]
+            augmentations = None
             print('"augmentations" not found')
         return augmentations
 
@@ -196,7 +206,7 @@ class Preprocessor:
         # If the augmentation reference file already exists, don't run this again.
         if augmentations is None:
 
-            augmentations = [[] for _ in range(n_of_sets)]
+            augmentations = [[] for _ in range(len(sets_with_labels))]
             # Creates augmentation patches from the original images, it stores the information
             # into pickle files.
             self.augment(sets_with_labels, augmentations)
