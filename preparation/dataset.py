@@ -1,16 +1,22 @@
 import numpy as np
 import preparation.utils as utils
+import h5py
 
 
 class Dataset:
-    def __init__(self, path, set_, augmented, batch_size=50, thresholds=()):
-        self.set = set_
-        self.augmented = augmented
+    def __init__(self, hdf5_path, patch_h, patch_w, n_channels, batch_size, data_type, thresholds=()):
+
         self.i = 0
-        self.path = path
         self.batch_size = batch_size
         self.done = False
         self.thresholds = thresholds
+        self.patch_h = patch_h
+        self.patch_w = patch_w
+        self.n_channels = n_channels
+        self.data_type = data_type
+
+        self.hdf5_path = hdf5_path
+        self.images, self.labels = self.get_hdf5_data()
 
     def __iter__(self):
         return self
@@ -20,7 +26,13 @@ class Dataset:
 
     @property
     def shape(self):
-        return [len(self.augmented), 224, 224, 3]
+        return [len(self.images), self.patch_h, self.patch_w, self.n_channels]
+
+    def get_hdf5_data(self):
+        hdf5_file = h5py.File(self.hdf5_path, 'r')
+        images = hdf5_file['%s_img' % self.data_type]
+        labels = hdf5_file['%s_labels' % self.data_type]
+        return images, labels
 
     def set_pos(self, i):
         self.i = i
@@ -47,22 +59,23 @@ class Dataset:
         adapted[i] = label if len(adapted) == 1 else 1.0
         return adapted
 
-    def get_example(self, config):
-        img_filename, label = self.set[config[0]]
-        augmented_patch = utils.get_augmented_patch(self.path, img_filename, config)
-        return augmented_patch, self.adapt_label(label), config[0]
+    # def get_example(self, config):
+    #     img_filename, label = self.set[config[0]]
+    #     augmented_patch = utils.get_augmented_patch(self.path, img_filename, config, self.patch_h, self.patch_w)
+    #     return augmented_patch, self.adapt_label(label), config[0]
 
     def next_batch(self, n):
         if self.done:
             self.done = False
             raise StopIteration
-        examples = list(map(lambda c: self.get_example(c), self.augmented[self.i:self.i + n]))
-        self.i += len(examples)
-        delta = n - len(examples)
+        batch_img = self.images[self.i:self.i + n]
+        batch_labels = self.labels[self.i:self.i + n]
+        self.i += len(batch_img)
+        delta = n - len(batch_img)
         if delta == n:
             raise StopIteration
         if 0 < delta:
-            examples += list(map(lambda c: self.get_example(c), self.augmented[:delta]))
+            batch_img += self.images[:delta]
             self.i = delta
             self.done = True
-        return tuple(map(np.array, zip(*examples)))
+        return batch_img/255.0, batch_labels

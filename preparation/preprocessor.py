@@ -2,16 +2,28 @@ import os
 import random
 import preparation.utils as utils
 import skimage.io
+import numpy as np
 
 
 class Preprocessor:
-    def __init__(self, project_path=os.getcwd()):
-        # Directories handling.
+    def __init__(self,  patch_h, patch_w, n_channels, project_path=os.getcwd()):
+
+        # patches size
+        self.patch_h = patch_h
+        self.patch_w = patch_w
+        self.n_channels = n_channels
+
+        # Directories and file name handling.
         relative_dataset_path = os.path.join('data', 'nki_he')
         self.dataset_path = os.path.join(project_path, relative_dataset_path)
-        self.sets_file_path = os.path.join(self.dataset_path, 'sets')
-        self.augmentations_file_path = os.path.join(self.dataset_path, 'augmentations')
-        
+        self.sets_file_path = os.path.join(self.dataset_path, 'sets_h%s_w%s' % (patch_h, patch_w))
+        self.augmentations_file_path = os.path.join(self.dataset_path, 'augmentations_h%s_w%s' % (patch_h, patch_w))
+        self.pathes_path = os.path.join(relative_dataset_path, 'patches_h%s_w%s' % (patch_h, patch_w))
+
+        self.hdf5_train = os.path.join(self.pathes_path, 'hdf5_nki_he_train.h5')
+        self.hdf5_test = os.path.join(self.pathes_path, 'hdf5_nki_he_test.h5')
+        self.hdf5 = [self.hdf5_train, self.hdf5_test]
+
         # Loading labels.
         label_file = os.path.join(self.dataset_path, 'nki_survival.csv')
         table = utils.load_csv(label_file)
@@ -21,8 +33,7 @@ class Preprocessor:
         filenames = os.listdir(self.dataset_path)
         self.image_filenames = utils.filter_filenames(filenames, extension='.jpg')
 
-        self.pathces_per_file = dict()
-        
+        self.patches_per_file = dict()
 
     # Returns lists of images for train/test given the provided shares.
     def split_data_into_sets(self, shares):
@@ -64,64 +75,59 @@ class Preprocessor:
         return ((img > threshold).sum(2) == 3).sum() / (img.shape[0] * img.shape[1]) < 0.3
 
     # Per filename 
-    def sample_random_patches(self, filename, n, patch_h=224, patch_w=224):
-        
+    def sample_patches(self, filename):
         patches = set()
-        attempts = 0
         display = False
 
-        # Keep creating patches, original, rotated and flipped,
-        # until you have more than 100 patches or 100 attemps, and
-        # length of paths is less than 
-        while len(patches) < n // 8 and (patches or attempts < 100):
-            attempts += 1
-            img = skimage.io.imread(os.path.join(self.dataset_path, filename))
-            y = random.randrange(0, img.shape[0] - patch_h + 1)
-            x = random.randrange(0, img.shape[1] - patch_w + 1)
-            pos = (y, x)
-            # Gets patch, flipped horizontally but not rotated or normalized.
-            patch = utils.get_augmented_patch(self.dataset_path, filename, (None,) + pos + (0, 0), norm=False)
-            if display:
-                print(filename, pos, self.satisfactory(patch))
-                import matplotlib.pyplot as plt
-                plt.imshow(patch)
-                plt.show()
-            # Make sure that the patch wasn't created at this positition before and that it goes above the threshold. 
-            # For each of patch, 4 rotations and 2 flips per rotation.
-            if pos not in patches and self.satisfactory(patch):
-                patches.add(pos)
-                for rot in range(4):
-                    for flip in range(2):
-                        yield pos + (rot, flip)
+        img = skimage.io.imread(os.path.join(self.dataset_path, filename))
+        # height -> y, width -> x.
+        height, width, channels = img.shape
+        num_y = height//self.patch_h
+        num_x = width//self.patch_w
 
-    # 
-    # sets          [ [file1, file2, ...]   , [file1, file2, ...]   ]
-    # augmentations [ [file1, file2, ...]   , [file1, file2, ...]   ]
-    # Fixed number of samples:
-    # 125 (125 patches/original images)  
-    # 8 (Per patch/4 right angle rotations - 2 Horizontal flips per each rotations)
-    def augment(self, sets, augmentations, samples=8*125):
+        for i_x in range(0, num_x):
+            for i_y in range(0, num_y):
+                y = i_y * self.patch_h
+                x = i_x * self.patch_w
+                pos = (y, x)
+                # Gets patch, flipped horizontally but not rotated or normalized.
+                patch = utils.get_augmented_patch(self.dataset_path, filename, (None,) + pos + (0, 0), self.patch_h, self.patch_w, norm=False)
+                if display:
+                    print(filename, pos, self.satisfactory(patch))
+                    import matplotlib.pyplot as plt
+                    plt.imshow(patch)
+                    plt.show()
+
+                # Make sure that the patch wasn't created at this position before and that it goes above the threshold.
+                # For each of patch, 4 rotations and 2 flips per rotation.
+                if pos not in patches and self.satisfactory(patch):
+                    patches.add(pos)
+                    for rot in range(4):
+                        for flip in range(2):
+                            yield pos + (rot, flip)
+
+    '''
+    sets = [set_train, set_test]
+    set_train = [('231___2_114_13_6.jpg', 13.4630136986) , ...]
+    set_test  = [('223___2_114_13_6.jpg', 41.1231265464) , ...]
+    augmentation = []
+    '''
+    def augment(self, sets, augmentations):
         # For train and test lists.
         for set_, augmentation_set in zip(sets, augmentations):
-            # If per image file there's no 1000 patch images.
-            # Number of files for the set * samples.
-            while len(augmentation_set) != len(set_) * samples:
+            '''
+            Set: [('231___2_114_13_6.jpg', 13.4630136986) , ...]
+                 [('Image name.jpg',       Survival years), ...]
+            '''
+            current_img_idx = 0
+            for filename, surv_expec in set_:
+                self.patches_per_file[filename] = 0
                 n = len(augmentation_set)
-                # Floor division: changing every 1000=samples, change file after 1000 samples.
-                current_img_idx = n // samples
-                filename = set_[current_img_idx][0]
-
-                # How good is this? Is it balanced? [VERIFIED]
-                # 1000 patches per image.
-                # samples - n % samples = remaining samples to get to 1000.
-                # it produces samples until this number.
-                for config in self.sample_random_patches(filename, samples - n % samples):
+                for config in self.sample_patches(filename):
                     config = (current_img_idx,) + config
                     augmentation_set.append(config)
-                    if filename not in self.pathces_per_file:
-                        self.pathces_per_file[filename] = 0    
-                    self.pathces_per_file[filename] += 1
-                    print(config, len(augmentation_set))
+                    self.patches_per_file[filename] += 1
+                print('Patches per image: %s %s ' % (filename, self.patches_per_file[filename]))
 
                 # If no new patches are created, remove image file from list and replace sets pickle.
                 # Possibilities?
@@ -134,6 +140,7 @@ class Preprocessor:
                 # Save augmentations in each iteration.
                 utils.store_data(augmentations, self.augmentations_file_path)
                 print('checkpoint saved')
+                current_img_idx += 1
 
     # Gets lists of train/test images either from pickle file or from the data path.
     def get_sets(self):
@@ -163,10 +170,17 @@ class Preprocessor:
     def __exit__(self, *args):
         pass
 
-    def print_patches_balance(self):
-        print('Total images used: %s' % len(self.pathces_per_file))
-        for filename in self.pathces_per_file:
-            print('%s: %s patches' % (filename, self.pathces_per_file[filename]))
+    def save_images(self, augmentations, sets, save):
+        if os.path.isdir(self.pathes_path):
+            print('Folder already exists: ', self.pathes_path)
+            exit(1)
+        os.makedirs(self.pathes_path)
+
+        for index, s in enumerate(['train', 'test']):
+            t_path = os.path.join(self.pathes_path, s)
+            os.makedirs(t_path)
+            utils.get_and_save_patch(augmentations[index], sets[index], self.hdf5[index], self.dataset_path, t_path, self.patch_h, self.patch_w, self.n_channels,
+                                     type_db=s, save=save)
 
     def run(self):
         # Getting lists of images for train and test.
@@ -179,17 +193,21 @@ class Preprocessor:
         # [ [file1, file2, ...]   , [file1, file2, ...]   ]
         augmentations = self.get_augmentations(len(sets_with_labels))
 
-        # Creates augmentation patches from the original images, it stores the information
-        # into pickle files.
-        self.augment(sets_with_labels, augmentations)
+        # If the augmentation reference file already exists, don't run this again.
+        if augmentations is None:
 
-        # Randomize patches for each of the train/test sets.
-        for set_ in augmentations:
-            random.shuffle(set_)
+            augmentations = [[] for _ in range(n_of_sets)]
+            # Creates augmentation patches from the original images, it stores the information
+            # into pickle files.
+            self.augment(sets_with_labels, augmentations)
 
-        # Saves augmentations into a pickle file.
-        utils.store_data(augmentations, self.augmentations_file_path)
-        print('"augmentations" file finished')
+            # Randomize patches for each of the train/test sets.
+            for set_ in augmentations:
+                random.shuffle(set_)
 
-        # print('Balance between patches and files')
-        # self.print_patches_balance()
+            # Saves augmentations into a pickle file.
+            utils.store_data(augmentations, self.augmentations_file_path)
+            print('"augmentations" file finished')
+
+        # Creates Hdf5 database and save patches images, saving the patches if off by default.
+        self.save_images(augmentations, sets_with_labels, save=False)
