@@ -18,7 +18,7 @@ class Dataset:
         self.images, self.labels = self.get_hdf5_data()
 
         self.size = len(self.labels)
-        self.iterations = len(self.labels)//self.batch_size
+        self.iterations = len(self.labels)//self.batch_size + 1
 
     def __iter__(self):
         return self
