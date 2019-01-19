@@ -15,7 +15,7 @@ def plot_images(plt_num, images, dim, axis='off'):
         fig.add_subplot(1, 10, i+1)
         img = images[i, :, :, :]
         plt.imshow(img)
-    plt.axis(axis)
+        plt.axis(axis)
     plt.show()
 
 
