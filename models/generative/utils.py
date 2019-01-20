@@ -32,11 +32,11 @@ def save_loss(losses, data_out_path, dim):
 
 
 # Run session to generate output samples.
-def show_generated(session, z_input, z_dim, output_fake, n_images):
+def show_generated(session, z_input, z_dim, output_fake, n_images, dim=20):
     sample_z = np.random.uniform(low=-1., high=1., size=(n_images, z_dim))
     feed_dict = {z_input:sample_z}
     gen_samples = session.run(output_fake, feed_dict=feed_dict)
-    plot_images(plt_num=n_images, images=gen_samples, dim=20)    
+    plot_images(plt_num=n_images, images=gen_samples, dim=dim)    
     return gen_samples, sample_z
 
 
