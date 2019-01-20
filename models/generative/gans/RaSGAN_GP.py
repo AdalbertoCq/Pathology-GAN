@@ -44,13 +44,13 @@ class RaSGAN_GP:
 
 			
 			# Conv.
-			net = tf.layers.conv2d(inputs=images, filters=64, kernel_size=(5,5), strides=(2, 2), padding='same', kernel_initializer=tf.contrib.layers.xavier_initializer())
-			net = leakyReLU(net, self.alpha)
+			net = tf.layers.conv2d(inputs=net, filters=64, kernel_size=(5,5), strides=(2, 2), padding='same', kernel_initializer=tf.contrib.layers.xavier_initializer())
+			if self.use_bn: net = leakyReLU(net, self.alpha)
 			# Shape = (None, 112, 112, 64)
 
 			# Conv.
-			net = tf.layers.conv2d(inputs=images, filters=64, kernel_size=(5,5), strides=(2, 2), padding='same', kernel_initializer=tf.contrib.layers.xavier_initializer())
-			net = leakyReLU(net, self.alpha)
+			net = tf.layers.conv2d(inputs=net, filters=64, kernel_size=(5,5), strides=(2, 2), padding='same', kernel_initializer=tf.contrib.layers.xavier_initializer())
+			if self.use_bn: net = leakyReLU(net, self.alpha)
 			# Shape = (None, 56, 56, 64)
 
 			# Conv.
@@ -69,11 +69,11 @@ class RaSGAN_GP:
 			net = tf.layers.conv2d(inputs=net, filters=512, kernel_size=(5,5), strides=(2, 2), padding='same', kernel_initializer=tf.contrib.layers.xavier_initializer())
 			if self.use_bn: net = tf.layers.batch_normalization(inputs=net, training=True)
 			net = leakyReLU(net, self.alpha)
-			# Shape = (None, 7, 7, 256)
+			# Shape = (None, 7, 7, 512)
 
 			# Flatten.
 			net = tf.layers.flatten(inputs=net)
-			# Shape = (None, 7*7*256)
+			# Shape = (None, 7*7*512)
 
 			# Dense.
 			net = tf.layers.dense(inputs=net, units=1024, activation=None)
@@ -264,7 +264,7 @@ class RaSGAN_GP:
 		                losses.append((epoch_loss_dis, epoch_loss_gen))
 		                print('Epochs %s/%s: Generator Loss: %s. Discriminator Loss: %s' % (epoch, epochs, np.round(epoch_loss_gen, 4), np.round(epoch_loss_dis, 4)))
 		            if run_epochs % show_epochs == 0:
-		                gen_samples, sample_z = show_generated(session=session, z_input=self.z_input, z_dim=self.z_dim, output_fake=self.output_gen, n_images=n_images)
+		                gen_samples, sample_z = show_generated(session=session, z_input=self.z_input, z_dim=self.z_dim, output_fake=self.output_gen, n_images=n_images, dim=30)
 		                img_storage[run_epochs//show_epochs] = gen_samples
 		                latent_storage[run_epochs//show_epochs] = sample_z
 		                saver.save(sess=session, save_path=checkpoints, global_step=run_epochs)
