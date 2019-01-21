@@ -70,7 +70,8 @@ class Preprocessor:
             patient_id = filename.split('_')[0]
             label = float(self.label_dict[patient_id])
         else:
-            label = filename.split('_')[-1]
+            label = filename.split('_')[0]
+            label = float(label)
         return label
 
     # 
