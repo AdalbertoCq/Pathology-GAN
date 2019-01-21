@@ -6,3 +6,4 @@ run
 *.swp
 .ipynb_checkpoints
 .ipynb_checkpoints/GAN-checkpoint.ipynb
+playground.ipynb
