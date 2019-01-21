@@ -235,15 +235,19 @@ class RaSGAN_GP:
 		self.output_gen = self.generator(self.z_input, reuse=True, is_train=False)
 
 
-	def train(self, epochs, data_out_path, data, show_epochs=100, print_epochs=10, n_images=10):
+	def train(self, epochs, data_out_path, data, show_epochs=100, print_epochs=10, n_images=10, restore=False):
 		run_epochs = 0    
 		losses = list()
 		saver = tf.train.Saver()
 
-		img_storage, latent_storage, checkpoints = setup_output(show_epochs, epochs, data, n_images, self.z_dim, data_out_path, self.model_name)
+		img_storage, latent_storage, checkpoints = setup_output(show_epochs, epochs, data, n_images, self.z_dim, data_out_path, self.model_name, restore)
 
 		with tf.Session() as session:
 		    session.run(tf.global_variables_initializer())
+		    if restore:
+		    	check = get_checkpoint(data_out_path)
+		    	saver.restore(session, check)
+		    	print('Restored model: %s' % check)
 		    for epoch in range(1, epochs+1):
 		        for batch_images, batch_labels in data.training:
 		            # Inputs.

@@ -40,20 +40,35 @@ def show_generated(session, z_input, z_dim, output_fake, n_images, dim=20):
     return gen_samples, sample_z
 
 
+def get_checkpoint(data_out_path, which=0):
+    checkpoints_path = os.path.join(data_out_path, 'checkpoints')
+    checkpoints = os.path.join(checkpoints_path, 'checkpoint')
+    index = 0
+    with open(checkpoints, 'r') as f:
+        for line in reversed(f.readlines()):
+            if index == which:
+                return line.split('"')[1]
+    print('No model to restore')
+    exit()
+
 # Method to setup 
-def setup_output(show_epochs, epochs, data, n_images, z_dim, data_out_path, model_name):
+def setup_output(show_epochs, epochs, data, n_images, z_dim, data_out_path, model_name, restore):
 
     checkpoints_path = os.path.join(data_out_path, 'checkpoints')
     checkpoints = os.path.join(checkpoints_path, '%s.ckt' % model_name)
     gen_images_path = os.path.join(data_out_path, 'images')
     gen_images = os.path.join(gen_images_path, 'gen_images.h5')
     latent_images = os.path.join(gen_images_path, 'latent_images.h5')
-    if os.path.isdir(checkpoints_path):
-         shutil.rmtree(checkpoints_path)
+    
     if os.path.isdir(gen_images_path):
          shutil.rmtree(gen_images_path)
-    os.makedirs(checkpoints_path)
     os.makedirs(gen_images_path)
+    
+    if not restore:
+        if os.path.isdir(checkpoints_path):
+            shutil.rmtree(checkpoints_path)
+        os.makedirs(checkpoints_path)
+    
 
     image_height = data.training.patch_h
     image_width = data.training.patch_w
