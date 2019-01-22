@@ -7,3 +7,6 @@ run
 .ipynb_checkpoints
 .ipynb_checkpoints/GAN-checkpoint.ipynb
 playground.ipynb
+playground.py
+process_data.py
+process_data.py
