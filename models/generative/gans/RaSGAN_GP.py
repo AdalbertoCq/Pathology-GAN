@@ -35,21 +35,15 @@ class RaSGAN_GP:
 		with tf.variable_scope('discriminator', reuse=reuse):
 			# Padding = 'Same' -> H_new = H_old // Stride
 
-			# Input Shape = (None, 448, 448, 3)
+			# Input Shape = (None, 112, 112, 32)
 			
 			# Conv.
-			net = tf.layers.conv2d(inputs=images, filters=32, kernel_size=(5,5), strides=(2, 2), padding='same', kernel_initializer=tf.contrib.layers.xavier_initializer())
-			net = leakyReLU(net, self.alpha)
-			# Shape = (None, 224, 224, 32)
-
-			
-			# Conv.
-			net = tf.layers.conv2d(inputs=net, filters=64, kernel_size=(5,5), strides=(2, 2), padding='same', kernel_initializer=tf.contrib.layers.xavier_initializer())
-			if self.use_bn: net = leakyReLU(net, self.alpha)
-			# Shape = (None, 112, 112, 64)
+			# net = tf.layers.conv2d(inputs=images, filters=32, kernel_size=(5,5), strides=(2, 2), padding='same', kernel_initializer=tf.contrib.layers.xavier_initializer())
+			# if self.use_bn: net = leakyReLU(net, self.alpha)
+			# Shape = (None, 112, 112, 32)
 
 			# Conv.
-			net = tf.layers.conv2d(inputs=net, filters=64, kernel_size=(5,5), strides=(2, 2), padding='same', kernel_initializer=tf.contrib.layers.xavier_initializer())
+			net = tf.layers.conv2d(inputs=images, filters=64, kernel_size=(5,5), strides=(2, 2), padding='same', kernel_initializer=tf.contrib.layers.xavier_initializer())
 			if self.use_bn: net = leakyReLU(net, self.alpha)
 			# Shape = (None, 56, 56, 64)
 
@@ -141,31 +135,20 @@ class RaSGAN_GP:
 			# Shape = (None, 56, 56, 64)
 
 			# Conv.
-			net = tf.layers.conv2d(inputs=net, filters=32, kernel_size=(5,5), strides=(1,1), padding='same', kernel_initializer=tf.contrib.layers.xavier_initializer())
-			net = tf.layers.batch_normalization(inputs=net, training=is_train)
-			net = leakyReLU(net, self.alpha)
+			# net = tf.layers.conv2d(inputs=net, filters=32, kernel_size=(5,5), strides=(1,1), padding='same', kernel_initializer=tf.contrib.layers.xavier_initializer())
+			# net = tf.layers.batch_normalization(inputs=net, training=is_train)
+			# net = leakyReLU(net, self.alpha)
 			# Shape = (None, 56, 56, 32)
 
 			# Conv.
-			net = tf.layers.conv2d_transpose(inputs=net, filters=32, kernel_size=(2,2), strides=(2,2), padding='same', kernel_initializer=tf.contrib.layers.xavier_initializer())
-			net = tf.layers.batch_normalization(inputs=net, training=is_train)
-			net = leakyReLU(net, self.alpha)
+			# net = tf.layers.conv2d_transpose(inputs=net, filters=32, kernel_size=(2,2), strides=(2,2), padding='same', kernel_initializer=tf.contrib.layers.xavier_initializer())
+			# net = tf.layers.batch_normalization(inputs=net, training=is_train)
+			# net = leakyReLU(net, self.alpha)
 			# Shape = (None, 112, 112, 32)
 
 			# Conv.
-			net = tf.layers.conv2d(inputs=net, filters=16, kernel_size=(5,5), strides=(1,1), padding='same', kernel_initializer=tf.contrib.layers.xavier_initializer())
-			net = tf.layers.batch_normalization(inputs=net, training=is_train)
-			net = leakyReLU(net, self.alpha)
-			# Shape = (None, 112, 112, 16)
-
-			# Conv.
-			net = tf.layers.conv2d_transpose(inputs=net, filters=16, kernel_size=(2,2), strides=(2,2), padding='same', kernel_initializer=tf.contrib.layers.xavier_initializer())
-			net = tf.layers.batch_normalization(inputs=net, training=is_train)
-			net = leakyReLU(net, self.alpha)
-			# Shape = (None, 224, 224, 16)
-
 			logits = tf.layers.conv2d_transpose(inputs=net, filters=self.image_channels, kernel_size=(2,2), strides=(2,2), padding='same', kernel_initializer=tf.contrib.layers.xavier_initializer())
-			# Shape = (None, 448, 448, 3)
+			# Shape = (None, 224, 224, 3)
 			output = tf.nn.sigmoid(x=logits, name='output')
 		return output
 
