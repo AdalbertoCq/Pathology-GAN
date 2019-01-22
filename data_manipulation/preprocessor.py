@@ -2,6 +2,7 @@ import os
 import random
 import data_manipulation.utils as utils
 import skimage.io
+import matplotlib.pyplot as plt
 
 class Preprocessor:
     def __init__(self,  patch_h, patch_w, n_channels, dataset, marker,  labels, project_path=os.getcwd()):
@@ -87,17 +88,22 @@ class Preprocessor:
     def sample_patches(self, filename):
         patches = set()
         display = False
-
         img = skimage.io.imread(os.path.join(self.dataset_path, filename))
+
         # height -> y, width -> x.
         height, width, channels = img.shape
-        num_y = height//self.patch_h
-        num_x = width//self.patch_w
+        # Hack for 224 patches, so there's more.
+        num_y = int(height//(self.patch_h/2))
+        num_x = int(width//(self.patch_w/2))
+        # num_y = height//self.patch_h
+        # num_x = width//self.patch_w
 
-        for i_x in range(0, num_x):
-            for i_y in range(0, num_y):
-                y = i_y * self.patch_h
-                x = i_x * self.patch_w
+        for i_x in range(0, num_x-1):
+            for i_y in range(0, num_y-1):
+                y = i_y * int(self.patch_h//2)
+                x = i_x * int(self.patch_w//2)
+                # y = i_y * self.patch_h
+                # x = i_x * self.patch_w
                 pos = (y, x)
                 # Gets patch, flipped horizontally but not rotated or normalized.
                 patch = utils.get_augmented_patch(self.dataset_path, filename, (None,) + pos + (0, 0), self.patch_h, self.patch_w, norm=False)

@@ -36,6 +36,13 @@ def filter_filenames(filenames, extension):
     return list(filter(lambda f: f.endswith(extension), filenames))
 
 
+# def filter_black_background(img, black_th, perc_th):
+#     amount_black = ((img < black_th).sum(2) == 3).sum()
+#     ratio_black = ((img < black_th).sum(2) == 3).sum() / (img.shape[0] * img.shape[1])
+#     if ratio_black < perc_th:
+#         return True
+#     return False
+
 # Gets patch from the original image given the config argument:
 # Config: _, y, x, rot, flip
 # It will also rotate and flip the patch, and returns depeding on norm/flip.
@@ -79,6 +86,7 @@ def get_and_save_patch(augmentations, sets, hdf5_path, dataset_path, train_path,
             print('\nCan\'t read image file ', file_name)
         index_patches += 1
     hdf5_file.close()
+    print()
 
 
 def make_arrays(train_images, test_images, train_labels, test_labels, patch_h, patch_w, n_channels):
