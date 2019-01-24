@@ -6,11 +6,13 @@ import shutil
 import h5py
 
 # Simple function to plot number images.
-def plot_images(plt_num, images, dim, axis='off'):
+def plot_images(plt_num, images, dim, title=None, axis='off'):
     # Standard parameters for the plot.
     
     mpl.rcParams["figure.figsize"] = dim, dim
     fig = plt.figure()
+    if title is not None:
+        fig.suptitle(title)
     for i in range(0, plt_num):
         fig.add_subplot(1, 10, i+1)
         img = images[i, :, :, :]
