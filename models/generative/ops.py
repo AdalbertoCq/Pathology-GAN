@@ -113,9 +113,7 @@ def convolutional(inputs, output_channels, filter_size, stride, padding, conv_ty
     elif conv_type == 'transpose':
         output_shape = [tf.shape(inputs)[0], current_shape[1]*stride, current_shape[2]*stride, output_channels]
         strides = [1, stride, stride, 1]
-        print(inputs.get_shape())
         output = tf.nn.conv2d_transpose(value=inputs, filter=filter, output_shape=tf.stack(output_shape), strides=strides, padding=padding, data_format=data_format)
-        print(output.get_shape())
     
     elif conv_type == 'convolutional':
         strides = [1, stride, stride, 1]

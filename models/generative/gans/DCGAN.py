@@ -1,10 +1,21 @@
 import tensorflow as tf
 from models.generative.ops import *
 from models.generative.utils import *
+from models.generative.loss import *
+from models.generative.optimizer import *
 
 
 class DCGAN:
-	def __init__(self, data, z_dim, use_bn, alpha, beta1, learning_rate, model_name):
+	def __init__(self, 
+				data,                        # Dataset class, training and test data.
+				z_dim,                       # Latent space dimensions.
+				use_bn,                      # Batch Normalization flag to control usage in discriminator.
+				alpha,                       # Alpha value for LeakyReLU.
+				beta_1,                      # Beta 1 value for Adam Optimizer.
+				learning_rate,               # Learning rate.
+				loss_type = 'standard',      # Loss function type: Standard, Least Square, Wasserstein, Wasserstein Gradient Penalty.				
+				model_name='DCGAN'           # Name to give to the model.
+				):
 
 		self.model_name = model_name
 
@@ -17,12 +28,15 @@ class DCGAN:
 		# Latent space dimensions.
 		self.z_dim = z_dim
 
+		# Loss function definition.
+		self.loss_type = loss_type
+
 		# Network details
 		self.use_bn = use_bn
 		self.alpha = alpha
 
 		# Training parameters
-		self.beta1 = beta1
+		self.beta_1 = beta_1
 		self.learning_rate = learning_rate
 
 		self.build_model()
@@ -35,20 +49,26 @@ class DCGAN:
 			# Input Shape = (None, 56, 56, 3)
 
 			# Conv.
-			net = tf.layers.conv2d(inputs=images, filters=64, kernel_size=(5,5), strides=(2, 2), padding='same', kernel_initializer=tf.contrib.layers.xavier_initializer())
-			net = leakyReLU(net, self.alpha)
+			with tf.variable_scope('conv_layer_%s' % 1):
+				net = convolutional(inputs=images, output_channels=64, filter_size=5, stride=2, padding='SAME', conv_type='convolutional')
+				# net = tf.layers.conv2d(inputs=images, filters=64, kernel_size=(5,5), strides=(2, 2), padding='same', kernel_initializer=tf.contrib.layers.xavier_initializer())
+				net = leakyReLU(net, self.alpha)
 			# Shape = (None, 28, 28, 64)
 
 			# Conv.
-			net = tf.layers.conv2d(inputs=net, filters=128, kernel_size=(5,5), strides=(2, 2), padding='same', kernel_initializer=tf.contrib.layers.xavier_initializer())
-			if self.use_bn: net = tf.layers.batch_normalization(inputs=net, training=True)
-			net = leakyReLU(net, self.alpha)
+			with tf.variable_scope('conv_layer_%s' % 2):
+				net = convolutional(inputs=net, output_channels=128, filter_size=5, stride=2, padding='SAME', conv_type='convolutional')
+				# net = tf.layers.conv2d(inputs=net, filters=128, kernel_size=(5,5), strides=(2, 2), padding='same', kernel_initializer=tf.contrib.layers.xavier_initializer())
+				if self.use_bn: net = tf.layers.batch_normalization(inputs=net, training=True)
+				net = leakyReLU(net, self.alpha)
 			# Shape = (None, 14, 14, 128)
 
 			# Conv.
-			net = tf.layers.conv2d(inputs=net, filters=256, kernel_size=(5,5), strides=(2, 2), padding='same', kernel_initializer=tf.contrib.layers.xavier_initializer())
-			if self.use_bn: net = tf.layers.batch_normalization(inputs=net, training=True)
-			net = leakyReLU(net, self.alpha)
+			with tf.variable_scope('conv_layer_%s' % 3):
+				net = convolutional(inputs=net, output_channels=256, filter_size=5, stride=2, padding='SAME', conv_type='convolutional')
+				# net = tf.layers.conv2d(inputs=net, filters=256, kernel_size=(5,5), strides=(2, 2), padding='same', kernel_initializer=tf.contrib.layers.xavier_initializer())
+				if self.use_bn: net = tf.layers.batch_normalization(inputs=net, training=True)
+				net = leakyReLU(net, self.alpha)
 			# Shape = (None, 7, 7, 256)
 
 			# Flatten.
@@ -56,17 +76,17 @@ class DCGAN:
 			# Shape = (None, 7*7*256)
 
 			# Dense.
-			net = tf.layers.dense(inputs=net, units=1024, activation=None)
-			if self.use_bn: net = tf.layers.batch_normalization(inputs=net, training=True)
-			net = leakyReLU(net, self.alpha)
+			with tf.variable_scope('dense_layer_%s' % 1):
+				net = tf.layers.dense(inputs=net, units=1024, activation=None)
+				if self.use_bn: net = tf.layers.batch_normalization(inputs=net, training=True)
+				net = leakyReLU(net, self.alpha)
 			# Shape = (None, 1024)
 
 			# Dense
-			logits = tf.layers.dense(inputs=net, units=1, activation=None)
-			# Shape = (None, 1)
-			output = tf.nn.sigmoid(x=logits)
-
-			# Padding = 'Same' -> H_new = H_old // Stride
+			with tf.variable_scope('conv_layer_%s' % 2):
+				logits = tf.layers.dense(inputs=net, units=1, activation=None)
+				# Shape = (None, 1)
+				output = tf.nn.sigmoid(x=logits)
 
 		return output, logits
 
@@ -75,15 +95,17 @@ class DCGAN:
 			# Doesn't work ReLU, tried.
 			# Input Shape = (None, 100)
 			# Dense.
-			net = tf.layers.dense(inputs=z_input, units=1024, activation=None)
-			net = tf.layers.batch_normalization(inputs=net, training=is_train)
-			net = leakyReLU(net, self.alpha)
+			with tf.variable_scope('dense_layer_%s' % 1):
+				net = tf.layers.dense(inputs=z_input, units=1024, activation=None)
+				net = tf.layers.batch_normalization(inputs=net, training=is_train)
+				net = leakyReLU(net, self.alpha)
 			# Shape = (None, 1024)
 
 			# Dense.
-			net = tf.layers.dense(net, 256*7*7, activation=None)
-			net = tf.layers.batch_normalization(inputs=net, training=is_train)
-			net = leakyReLU(net, self.alpha)
+			with tf.variable_scope('dense_layer_%s' % 2):
+				net = tf.layers.dense(net, 256*7*7, activation=None)
+				net = tf.layers.batch_normalization(inputs=net, training=is_train)
+				net = leakyReLU(net, self.alpha)
 			# Shape = (None, 256*7*7)
 
 			# Reshape
@@ -91,28 +113,35 @@ class DCGAN:
 			# Shape = (None, 7, 7, 256)
 
 			# Conv.
-			net = tf.layers.conv2d_transpose(inputs=net, filters=256, kernel_size=(2,2), strides=(2,2), padding='same', kernel_initializer=tf.contrib.layers.xavier_initializer())
-			net = tf.layers.batch_normalization(inputs=net, training=is_train)
-			net = leakyReLU(net, self.alpha)
+			with tf.variable_scope('conv_layer_%s' % 1):
+				net = convolutional(inputs=net, output_channels=256, filter_size=2, stride=2, padding='SAME', conv_type='transpose')
+				# net = tf.layers.conv2d_transpose(inputs=net, filters=256, kernel_size=(2,2), strides=(2,2), padding='same', kernel_initializer=tf.contrib.layers.xavier_initializer())
+				net = tf.layers.batch_normalization(inputs=net, training=is_train)
+				net = leakyReLU(net, self.alpha)
 			# Shape = (None, 14, 14, 256)
 
 			# Conv.
-			net = tf.layers.conv2d(inputs=net, filters=128, kernel_size=(5,5), strides=(1,1), padding='same', kernel_initializer=tf.contrib.layers.xavier_initializer())
-			net = tf.layers.batch_normalization(inputs=net, training=is_train)
-			net = leakyReLU(net, self.alpha)
+			with tf.variable_scope('conv_layer_%s' % 2):
+				net = convolutional(inputs=net, output_channels=128, filter_size=5, stride=1, padding='SAME', conv_type='transpose')
+				# net = tf.layers.conv2d(inputs=net, filters=128, kernel_size=(5,5), strides=(1,1), padding='same', kernel_initializer=tf.contrib.layers.xavier_initializer())
+				net = tf.layers.batch_normalization(inputs=net, training=is_train)
+				net = leakyReLU(net, self.alpha)
 			# Shape = (None, 14, 14, 128)
 
 			# Conv.
-			net = tf.layers.conv2d_transpose(inputs=net, filters=128, kernel_size=(2,2), strides=(2,2), padding='same', kernel_initializer=tf.contrib.layers.xavier_initializer())
-			net = tf.layers.batch_normalization(inputs=net, training=is_train)
-			net = leakyReLU(net, self.alpha)
+			with tf.variable_scope('conv_layer_%s' % 3):
+				net = convolutional(inputs=net, output_channels=128, filter_size=2, stride=2, padding='SAME', conv_type='transpose')
+				# net = tf.layers.conv2d_transpose(inputs=net, filters=128, kernel_size=(2,2), strides=(2,2), padding='same', kernel_initializer=tf.contrib.layers.xavier_initializer())
+				net = tf.layers.batch_normalization(inputs=net, training=is_train)
+				net = leakyReLU(net, self.alpha)
 			# Shape = (None, 28, 28, 128)
 
-			logits = tf.layers.conv2d_transpose(inputs=net, filters=self.image_channels, kernel_size=(2,2), strides=(2,2), padding='same', kernel_initializer=tf.contrib.layers.xavier_initializer())
-			# Shape = (None, 56, 56, 3)
-			output = tf.nn.sigmoid(x=logits, name='output')
+			with tf.variable_scope('conv_layer_%s' % 4):
+				logits = convolutional(inputs=net, output_channels=self.image_channels, filter_size=2, stride=2, padding='SAME', conv_type='transpose')
+				# logits = tf.layers.conv2d_transpose(inputs=net, filters=self.image_channels, kernel_size=(2,2), strides=(2,2), padding='same', kernel_initializer=tf.contrib.layers.xavier_initializer())
+				# Shape = (None, 56, 56, 3)
+				output = tf.nn.sigmoid(x=logits, name='output')
 		return output
-
 
 	def model_inputs(self):
 		real_images = tf.placeholder(dtype=tf.float32, shape=(None, self.image_width, self.image_height, self.image_channels), name='real_images')
@@ -122,28 +151,12 @@ class DCGAN:
 
 
 	def loss(self):
-		# Discriminator loss.
-		loss_dis_fake = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=self.logits_fake, labels=tf.zeros_like(self.output_fake)))
-		loss_dis_real = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=self.logits_real, labels=tf.ones_like(self.output_fake)*0.9))
-		loss_dis = loss_dis_fake + loss_dis_real
-
-		# Generator loss.
-		# This is where we implement -log[D(G(z))] instead log[1-D(G(z))].
-		# Recall the implementation of cross-entropy, sign already in. 
-		loss_gen = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=self.logits_fake, labels=tf.ones_like(self.output_fake)))
-
+		loss_dis, loss_gen = losses(self.loss_type, self.output_fake, self.output_real, self.logits_fake, self.logits_real)
 		return loss_dis, loss_gen
 
 
 	def optimization(self):
-		trainable_variables = tf.trainable_variables()
-		generator_variables = [variable for variable in trainable_variables if variable.name.startswith('generator')]
-		discriminator_variables = [variable for variable in trainable_variables if variable.name.startswith('discriminator')]
-
-		# Handling Batch Normalization.
-		with tf.control_dependencies(tf.get_collection(tf.GraphKeys.UPDATE_OPS)):
-			train_generator = tf.train.AdamOptimizer(learning_rate=self.learning_rate_input, beta1=self.beta1).minimize(self.loss_gen, var_list=generator_variables)
-			train_discriminator = tf.train.AdamOptimizer(learning_rate=self.learning_rate_input, beta1=self.beta1).minimize(self.loss_dis, var_list=discriminator_variables)    
+		train_discriminator, train_generator = optimizer(self.beta_1, self.loss_gen, self.loss_dis, self.loss_type, self.learning_rate_input)
 		return train_discriminator, train_generator
     
 
@@ -166,12 +179,12 @@ class DCGAN:
 		self.output_gen = self.generator(self.z_input, reuse=True, is_train=False)
 
 
-	def train(self, epochs, data_out_path, data, show_epochs=100, print_epochs=10, n_images=10):
+	def train(self, epochs, data_out_path, data, restore, show_epochs=100, print_epochs=10, n_images=10):
 		run_epochs = 0    
 		losses = list()
 		saver = tf.train.Saver()
 
-		img_storage, latent_storage, checkpoints = setup_output(show_epochs, epochs, data, n_images, self.z_dim, data_out_path, self.model_name)
+		img_storage, latent_storage, checkpoints = setup_output(show_epochs, epochs, data, n_images, self.z_dim, data_out_path, self.model_name, restore)
 
 		with tf.Session() as session:
 		    session.run(tf.global_variables_initializer())
