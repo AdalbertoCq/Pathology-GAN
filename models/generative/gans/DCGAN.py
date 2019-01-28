@@ -122,7 +122,7 @@ class DCGAN:
 
 			# Conv.
 			with tf.variable_scope('conv_layer_%s' % 2):
-				net = convolutional(inputs=net, output_channels=128, filter_size=5, stride=1, padding='SAME', conv_type='transpose')
+				net = convolutional(inputs=net, output_channels=128, filter_size=5, stride=1, padding='SAME', conv_type='convolutional')
 				# net = tf.layers.conv2d(inputs=net, filters=128, kernel_size=(5,5), strides=(1,1), padding='same', kernel_initializer=tf.contrib.layers.xavier_initializer())
 				net = tf.layers.batch_normalization(inputs=net, training=is_train)
 				net = leakyReLU(net, self.alpha)
