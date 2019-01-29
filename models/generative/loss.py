@@ -33,7 +33,7 @@ def losses(loss_type, output_fake, output_real, logits_fake, logits_real, real_i
             loss_gen = loss_gen_real + loss_gen_fake
             loss_print += 'least square '
 
-        elif 'wasserstein distance' in loss_type:
+        elif 'gradient penalty' in loss_type:
             # Calculating X hat.
             epsilon = tf.random.uniform(shape=(batch_size, 1, 1, 1), minval=0.0, maxval=1.0, dtype=tf.float32, name='epsilon')
             x_gp = real_images*(1-epsilon) + fake_images*epsilon
@@ -53,7 +53,7 @@ def losses(loss_type, output_fake, output_real, logits_fake, logits_real, real_i
             loss_gen_real = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=logits_diff_fake_real, labels=tf.ones_like(logits_fake)))
             loss_gen_fake = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=logits_diff_real_fake, labels=tf.zeros_like(logits_fake)))
             loss_gen = loss_gen_real + loss_gen_fake
-            loss_print += 'wasserstein distance '
+            loss_print += 'gradient penalty '
 
     elif loss_type == 'standard':
         # Discriminator loss. Uses hinge loss on discriminator.
