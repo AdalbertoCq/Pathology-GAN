@@ -4,36 +4,37 @@ def leakyReLU(x, alpha):
     return tf.maximum(alpha*x, x)
 
 # This step need to be heavily revised.
-def attention_block(x, i):
+def attention_block(x, i, spectral=True, power_iterations=1):
 
-    channels = x.get_shape()[-1]
-    batch_size = x.get_shape()[0]
+    batch_size, height, width, channels = x.get_shape().as_list()
     with tf.variable_scope('attention_block_%s' % i):
 
         # Global value for all pixels, measures how important is the context for each of them.
         gamma = tf.get_variable('gamma', shape=(1),initializer=tf.constant_initializer(0.0))
+        if channels//8 == 0:
+            f_g_channels = channels
+        else:
+            f_g_channels = channels//8
 
-        f = tf.layers.conv2d(inputs=x, filters=channels//8, kernel_size=(1,1), strides=(1,1), padding='same', kernel_initializer=tf.contrib.layers.xavier_initializer())
-        g = tf.layers.conv2d(inputs=x, filters=channels//8, kernel_size=(1,1), strides=(1,1), padding='same', kernel_initializer=tf.contrib.layers.xavier_initializer())
-        h = tf.layers.conv2d(inputs=x, filters=channels, kernel_size=(1,1), strides=(1,1), padding='same', kernel_initializer=tf.contrib.layers.xavier_initializer())
+        f = convolutional(inputs=x, output_channels=f_g_channels, filter_size=1, stride=1, padding='SAME', conv_type='convolutional', spectral=True, power_iterations=power_iterations, scope=1)
+        g = convolutional(inputs=x, output_channels=f_g_channels, filter_size=1, stride=1, padding='SAME', conv_type='convolutional', spectral=True, power_iterations=power_iterations, scope=2)
+        h = convolutional(inputs=x, output_channels=channels    , filter_size=1, stride=1, padding='SAME', conv_type='convolutional', spectral=True, power_iterations=power_iterations, scope=3)
 
         # Flatten f, g, and h per channel.
-        f_shape = f.get_shape()
-        g_shape = g.get_shape()
-        h_shape = h.get_shape()
-        f_flat = tf.reshape(f, shape=(batch_size, -1, channels//8))
-        g_flat = tf.reshape(g, shape=(batch_size, -1, channels//8))
-        h_flat = tf.reshape(h, shape=(batch_size, -1, channels))
-        
-        s = tf.matmul(f_flat, g_flat, transpose_a=True)
-        #TODO: Not sure about the output shape. Need to verify.
+        f_flat = tf.reshape(f, shape=tf.stack([tf.shape(x)[0], height*width, channels//8]))
+        g_flat = tf.reshape(g, shape=tf.stack([tf.shape(x)[0], height*width, channels//8]))
+        h_flat = tf.reshape(h, shape=tf.stack([tf.shape(x)[0], height*width, channels]))
 
-        #TODO: Verify this step. Not sure how it is calculating the softmax, per row?
+        s = tf.matmul(g_flat, f_flat, transpose_b=True)
+
         beta = tf.nn.softmax(s)
 
-        # TODO: Not sure about this one either.
+        print(beta)
+        print(x.shape)
+        print(beta.shape)
+        print(h_flat.shape)
         o = tf.matmul(beta, h_flat)
-        o = tf.reshape(o, shape=x.get_shape())
+        o = tf.reshape(o, shape=tf.stack([tf.shape(x)[0], height, width, channels]))
         y = gamma*o + x
 
     return y
@@ -64,7 +65,6 @@ def spectral_normalization(filter, power_iterations):
     # v_norm = tf.stop_gradient(v_norm)
 
     singular_w = tf.matmul(tf.matmul(v_norm, filter_reshape), tf.transpose(u_norm))
-    print(singular_w)
 
     '''
     tf.assign(ref,  value):
