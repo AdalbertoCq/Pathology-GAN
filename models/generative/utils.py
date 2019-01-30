@@ -77,7 +77,7 @@ def setup_output(show_epochs, epochs, data, n_images, z_dim, data_out_path, mode
     image_width = data.training.patch_w
     image_channels = data.training.n_channels
 
-    size_img = (epochs*data.training.iterations)//show_epochs + 1
+    size_img = (epochs*data.training.iterations)//show_epochs+1
     img_db_shape = (size_img, n_images, image_height, image_width, image_channels)
     latent_db_shape = (size_img, n_images, z_dim)
     hdf5_gen = h5py.File(gen_images, mode='w')
