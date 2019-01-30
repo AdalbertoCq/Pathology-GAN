@@ -55,7 +55,7 @@ def get_checkpoint(data_out_path, which=0):
     exit()
 
 # Method to setup 
-def setup_output(show_epochs, epochs, data, n_images, z_dim, data_out_path, model_name, restore):
+def setup_output(show_epochs, epochs, data, n_images, z_dim, data_out_path, model_name, restore, save_img):
 
     checkpoints_path = os.path.join(data_out_path, 'checkpoints')
     checkpoints = os.path.join(checkpoints_path, '%s.ckt' % model_name)
@@ -80,10 +80,14 @@ def setup_output(show_epochs, epochs, data, n_images, z_dim, data_out_path, mode
     size_img = (epochs*data.training.iterations)//show_epochs+1
     img_db_shape = (size_img, n_images, image_height, image_width, image_channels)
     latent_db_shape = (size_img, n_images, z_dim)
-    hdf5_gen = h5py.File(gen_images, mode='w')
-    hdf5_latent = h5py.File(latent_images, mode='w')
-    img_storage = hdf5_gen.create_dataset(name='generated_img', shape=img_db_shape, dtype=np.float32)
-    latent_storage = hdf5_latent.create_dataset(name='generated_img', shape=latent_db_shape, dtype=np.float32)
+    if save_img:
+        hdf5_gen = h5py.File(gen_images, mode='w')
+        hdf5_latent = h5py.File(latent_images, mode='w')
+        img_storage = hdf5_gen.create_dataset(name='generated_img', shape=img_db_shape, dtype=np.float32)
+        latent_storage = hdf5_latent.create_dataset(name='generated_img', shape=latent_db_shape, dtype=np.float32)
+    else: 
+        img_storage = None
+        latent_storage = None
 
     return img_storage, latent_storage, checkpoints
 
