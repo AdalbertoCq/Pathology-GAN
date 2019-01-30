@@ -35,7 +35,7 @@ def losses(loss_type, output_fake, output_real, logits_fake, logits_real, real_i
 
         elif 'gradient penalty' in loss_type:
             # Calculating X hat.
-            epsilon = tf.random.uniform(shape=(batch_size, 1, 1, 1), minval=0.0, maxval=1.0, dtype=tf.float32, name='epsilon')
+            epsilon = tf.random.uniform(shape=tf.stack([tf.shape(real_images)[0], 1, 1, 1]), minval=0.0, maxval=1.0, dtype=tf.float32, name='epsilon')
             x_gp = real_images*(1-epsilon) + fake_images*epsilon
             output_gp, logits_gp = discriminator(x_gp, True)
 
@@ -88,7 +88,7 @@ def losses(loss_type, output_fake, output_real, logits_fake, logits_real, real_i
         loss_gen = -loss_dis_fake
         if 'gradient penalty' in loss_type:
             # Calculating X hat.
-            epsilon = tf.random.uniform(shape=(batch_size, 1, 1, 1), minval=0.0, maxval=1.0, dtype=tf.float32, name='epsilon')
+            epsilon = tf.random.uniform(shape=tf.stack([tf.shape(real_images)[0], 1, 1, 1]), minval=0.0, maxval=1.0, dtype=tf.float32, name='epsilon')
             x_gp = real_images*(1-epsilon) + fake_images*epsilon
             output_gp, logits_gp = discriminator(x_gp, True)
 
