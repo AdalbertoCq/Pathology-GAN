@@ -9,7 +9,8 @@ import h5py
 def plot_images(plt_num, images, dim, title=None, axis='off'):
     # Standard parameters for the plot.
     
-    mpl.rcParams["figure.figsize"] = dim, dim
+    mpl.rcParams['figure.figsize'] = dim, dim
+    mpl.rcParams['axes.titlepad'] = 20 
     fig = plt.figure()
     if title is not None:
         fig.suptitle(title)
