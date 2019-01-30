@@ -64,6 +64,8 @@ def spectral_normalization(filter, power_iterations):
     # v_norm = tf.stop_gradient(v_norm)
 
     singular_w = tf.matmul(tf.matmul(v_norm, filter_reshape), tf.transpose(u_norm))
+    print(singular_w)
+
     '''
     tf.assign(ref,  value):
         This operation outputs a Tensor that holds the new value of 'ref' after the value has been assigned. 
@@ -240,10 +242,10 @@ def dense(inputs, out_dim, scope, use_bias=True, spectral=False, power_iteration
         if spectral:
             output = tf.matmul(inputs, spectral_normalization(weights, power_iterations))
         else:
-            output = tf.matmul(inputs, weights, power_iterations)
+            output = tf.matmul(inputs, weights)
         
         if use_bias : 
-            bias = tf.get_variable("bias", [out_dim], initializer=tf.constant_initializer(0.0))
+            bias = tf.get_variable('bias', [out_dim], initializer=tf.constant_initializer(0.0), trainable=True, dtype=tf.float32)
         output += bias
     return output
 
