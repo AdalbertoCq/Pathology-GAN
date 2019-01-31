@@ -64,35 +64,35 @@ class SNGAN:
 
 			# Conv.
 			net = convolutional(inputs=images, output_channels=32, filter_size=5, stride=2, padding='SAME', conv_type='convolutional', spectral=True, power_iterations=self.power_iterations, scope=1)
-			net = attention_block(x=net, i=1)
+			# net = attention_block(x=net, i=1)
 			if self.use_bn: net = tf.layers.batch_normalization(inputs=net, training=True)
 			net = leakyReLU(net, self.alpha)
 			# Shape = (None, 112, 112, 32)
 
 			# Conv.
 			net = convolutional(inputs=net, output_channels=64, filter_size=5, stride=2, padding='SAME', conv_type='convolutional', spectral=True, power_iterations=self.power_iterations, scope=2)
-			net = attention_block(x=net, i=2)
+			# net = attention_block(x=net, i=2)
 			if self.use_bn: net = tf.layers.batch_normalization(inputs=net, training=True)
 			net = leakyReLU(net, self.alpha)
 			# Shape = (None, 56, 56, 64)
 
 			# Conv.
 			net = convolutional(inputs=net, output_channels=128, filter_size=5, stride=2, padding='SAME', conv_type='convolutional', spectral=True, power_iterations=self.power_iterations, scope=3)
-			net = attention_block(x=net, i=3)
+			# net = attention_block(x=net, i=3)
 			if self.use_bn: net = tf.layers.batch_normalization(inputs=net, training=True)
 			net = leakyReLU(net, self.alpha)
 			# Shape = (None, 28, 28, 128)
 
 			# Conv.
 			net = convolutional(inputs=net, output_channels=256, filter_size=5, stride=2, padding='SAME', conv_type='convolutional', spectral=True, power_iterations=self.power_iterations, scope=4)
-			net = attention_block(x=net, i=4)
+			# net = attention_block(x=net, i=4)
 			if self.use_bn: net = tf.layers.batch_normalization(inputs=net, training=True)
 			net = leakyReLU(net, self.alpha)
 			# Shape = (None, 14, 14, 256)
 
 			# Conv.
 			net = convolutional(inputs=net, output_channels=512, filter_size=5, stride=2, padding='SAME', conv_type='convolutional', spectral=True, power_iterations=self.power_iterations, scope=5)
-			net = attention_block(x=net, i=5)
+			# net = attention_block(x=net, i=5)
 			if self.use_bn: net = tf.layers.batch_normalization(inputs=net, training=True)
 			net = leakyReLU(net, self.alpha)
 			# Shape = (None, 7, 7, 512)
@@ -138,50 +138,49 @@ class SNGAN:
 
 			# Conv.
 			net = convolutional(inputs=net, output_channels=256, filter_size=2, stride=2, padding='SAME', conv_type='transpose', spectral=True, power_iterations=self.power_iterations, scope=1)
-			net = attention_block(x=net, i=1)
+			# net = attention_block(x=net, i=1)
 			net = tf.layers.batch_normalization(inputs=net, training=is_train)
 			net = leakyReLU(net, self.alpha)
 			# Shape = (None, 14, 14, 256)
 
 			# Conv.
 			net = convolutional(inputs=net, output_channels=128, filter_size=5, stride=1, padding='SAME', conv_type='convolutional', spectral=True, power_iterations=self.power_iterations, scope=2)
-			net = attention_block(x=net, i=5)
+			# net = attention_block(x=net, i=5)
 			net = tf.layers.batch_normalization(inputs=net, training=is_train)
 			net = leakyReLU(net, self.alpha)
 			# Shape = (None, 14, 14, 128)
 
 			# Conv.
 			net = convolutional(inputs=net, output_channels=128, filter_size=2, stride=2, padding='SAME', conv_type='transpose', spectral=True, power_iterations=self.power_iterations, scope=3)
-			net = attention_block(x=net, i=6)
+			# net = attention_block(x=net, i=6)
 			net = tf.layers.batch_normalization(inputs=net, training=is_train)
 			net = leakyReLU(net, self.alpha)
 			# Shape = (None, 28, 28, 128)
 
 			# Conv.
 			net = convolutional(inputs=net, output_channels=64, filter_size=5, stride=1, padding='SAME', conv_type='convolutional', spectral=True, power_iterations=self.power_iterations, scope=4)
-			net = attention_block(x=net, i=7)
+			# net = attention_block(x=net, i=7)
 			net = tf.layers.batch_normalization(inputs=net, training=is_train)
 			net = leakyReLU(net, self.alpha)
 			# Shape = (None, 28, 28, 64)
 
 			# Conv.
 			net = convolutional(inputs=net, output_channels=64, filter_size=2, stride=2, padding='SAME', conv_type='transpose', spectral=True, power_iterations=self.power_iterations, scope=5)
-			net = attention_block(x=net, i=8)
+			# net = attention_block(x=net, i=8)
 			net = tf.layers.batch_normalization(inputs=net, training=is_train)
 			net = leakyReLU(net, self.alpha)
 			# Shape = (None, 56, 56, 64)
 
 			# Conv.
 			net = convolutional(inputs=net, output_channels=32, filter_size=5, stride=1, padding='SAME', conv_type='convolutional', spectral=True, power_iterations=self.power_iterations, scope=6)
-			net = attention_block(x=net, i=9)
+			# net = attention_block(x=net, i=9)
 			net = tf.layers.batch_normalization(inputs=net, training=is_train)
 			net = leakyReLU(net, self.alpha)
 			# Shape = (None, 56, 56, 32)
 
 			# Conv.
 			net = convolutional(inputs=net, output_channels=32, filter_size=2, stride=2, padding='SAME', conv_type='transpose', spectral=True, power_iterations=self.power_iterations, scope=7)
-			net = attention_block(x=net, i=10)
-			# net = tf.layers.conv2d_transpose(inputs=net, filters=32, kernel_size=(2,2), strides=(2,2), padding='same', kernel_initializer=tf.contrib.layers.xavier_initializer())
+			# net = attention_block(x=net, i=10)
 			net = tf.layers.batch_normalization(inputs=net, training=is_train)
 			net = leakyReLU(net, self.alpha)
 			# Shape = (None, 112, 112, 32)
@@ -201,7 +200,7 @@ class SNGAN:
 
 			# Conv.
 			logits = convolutional(inputs=net, output_channels=self.image_channels, filter_size=2, stride=2, padding='SAME', conv_type='transpose', spectral=True, power_iterations=self.power_iterations, scope=8)
-			logits = attention_block(x=logits, i=11)
+			# logits = attention_block(x=logits, i=11)
 			# Shape = (None, 448, 448, 3)
 			output = tf.nn.sigmoid(x=logits, name='output')
 		return output
@@ -244,12 +243,12 @@ class SNGAN:
 		self.output_gen = self.generator(self.z_input, reuse=True, is_train=False)
 
 
-	def train(self, epochs, data_out_path, data, restore, show_epochs=100, print_epochs=10, n_images=10):
+	def train(self, epochs, data_out_path, data, restore, show_epochs=100, print_epochs=10, n_images=10, save_img=False):
 		run_epochs = 0    
 		losses = list()
 		saver = tf.train.Saver()
 
-		img_storage, latent_storage, checkpoints = setup_output(show_epochs, epochs, data, n_images, self.z_dim, data_out_path, self.model_name, restore)
+		img_storage, latent_storage, checkpoints = setup_output(show_epochs, epochs, data, n_images, self.z_dim, data_out_path, self.model_name, restore, save_img)
 
 		with tf.Session() as session:
 		    session.run(tf.global_variables_initializer())
@@ -271,8 +270,9 @@ class SNGAN:
 		                print('Epochs %s/%s: Generator Loss: %s. Discriminator Loss: %s' % (epoch, epochs, np.round(epoch_loss_gen, 4), np.round(epoch_loss_dis, 4)))
 		            if run_epochs % show_epochs == 0:
 		                gen_samples, sample_z = show_generated(session=session, z_input=self.z_input, z_dim=self.z_dim, output_fake=self.output_gen, n_images=n_images)
-		                img_storage[run_epochs//show_epochs] = gen_samples
-		                latent_storage[run_epochs//show_epochs] = sample_z
+		                if save_img:
+			                img_storage[run_epochs//show_epochs] = gen_samples
+			                latent_storage[run_epochs//show_epochs] = sample_z
 		                saver.save(sess=session, save_path=checkpoints, global_step=run_epochs)
 
 		            run_epochs += 1
