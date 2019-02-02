@@ -13,7 +13,8 @@ class SNGAN:
 				use_bn,                      # Batch Normalization flag to control usage in discriminator.
 				alpha,                       # Alpha value for LeakyReLU.
 				beta_1,                      # Beta 1 value for Adam Optimizer.
-				learning_rate,               # Learning rate.
+				learning_rate_g,             # Learning rate generator.
+				learning_rate_d,             # Learning rate discriminator.
 				power_iterations=1,          # Iterations of the power iterative method: Calculation of Eigenvalues, Singular Values.
 				beta_2=None,                 # Beta 2 value for Adam Optimizer.
 				n_critic=1,                  # Number of batch gradient iterations in Discriminator per Generator.
@@ -46,7 +47,8 @@ class SNGAN:
 		self.gp_coeff = gp_coeff
 		self.beta_1 = beta_1
 		self.beta_2 = beta_2
-		self.learning_rate = learning_rate
+		self.learning_rate_g = learning_rate_g
+		self.learning_rate_d = learning_rate_d
 
 		self.build_model()
 
@@ -209,8 +211,9 @@ class SNGAN:
 	def model_inputs(self):
 		real_images = tf.placeholder(dtype=tf.float32, shape=(None, self.image_width, self.image_height, self.image_channels), name='real_images')
 		z_input = tf.placeholder(dtype=tf.float32, shape=(None, self.z_dim), name='z_input')
-		learning_rate = tf.placeholder(dtype=tf.float32, name='learning_rate')
-		return real_images, z_input, learning_rate
+		learning_rate_g = tf.placeholder(dtype=tf.float32, name='learning_rate_g')
+		learning_rate_d = tf.placeholder(dtype=tf.float32, name='learning_rate_d')
+		return real_images, z_input, learning_rate_g, learning_rate_d
 
 
 	def loss(self):
@@ -220,13 +223,13 @@ class SNGAN:
 
 
 	def optimization(self):
-		train_discriminator, train_generator = optimizer(self.beta_1, self.loss_gen, self.loss_dis, self.loss_type, self.learning_rate_input, beta_2=self.beta_2)
+		train_discriminator, train_generator = optimizer(self.beta_1, self.loss_gen, self.loss_dis, self.loss_type, self.learning_rate_input_g, self.learning_rate_input_d, beta_2=self.beta_2)
 		return train_discriminator, train_generator
     
 
 	def build_model(self):
 		# Inputs.
-		self.real_images, self.z_input, self.learning_rate_input = self.model_inputs()
+		self.real_images, self.z_input, self.learning_rate_input_g, self.learning_rate_input_d = self.model_inputs()
 
 		# Neural Network Generator and Discriminator.
 		self.fake_images = self.generator(self.z_input, reuse=False, is_train=True)
@@ -256,7 +259,7 @@ class SNGAN:
 		        for batch_images, batch_labels in data.training:
 		            # Inputs.
 		            z_batch = np.random.uniform(low=-1., high=1., size=(self.batch_size, self.z_dim))               
-		            feed_dict = {self.z_input:z_batch, self.real_images:batch_images, self.learning_rate_input: self.learning_rate}
+		            feed_dict = {self.z_input:z_batch, self.real_images:batch_images, self.learning_rate_input_g: self.learning_rate_g, self.learning_rate_input_d: self.learning_rate_d}
 
 		            # Run gradient.
 		            session.run(self.train_discriminator, feed_dict=feed_dict)
