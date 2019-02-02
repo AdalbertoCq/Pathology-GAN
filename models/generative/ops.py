@@ -11,10 +11,7 @@ def attention_block(x, i, spectral=True, power_iterations=1):
 
         # Global value for all pixels, measures how important is the context for each of them.
         gamma = tf.get_variable('gamma', shape=(1),initializer=tf.constant_initializer(0.0))
-        if channels//8 == 0:
-            f_g_channels = channels
-        else:
-            f_g_channels = channels//8
+        f_g_channels = channels//8
 
         f = convolutional(inputs=x, output_channels=f_g_channels, filter_size=1, stride=1, padding='SAME', conv_type='convolutional', spectral=True, power_iterations=power_iterations, scope=1)
         g = convolutional(inputs=x, output_channels=f_g_channels, filter_size=1, stride=1, padding='SAME', conv_type='convolutional', spectral=True, power_iterations=power_iterations, scope=2)
