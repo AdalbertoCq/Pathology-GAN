@@ -5,7 +5,8 @@ import skimage.io
 import numpy as np
 import sys
 import h5py
-
+import math
+import matplotlib.pyplot as plt
 
 def save_image(img, job_id, name, train=True):
     if train:
@@ -119,3 +120,19 @@ def write_label_data(label_data, file_name):
     with open(file_name, "wb") as f:
         f.write(header.tobytes())
         f.write(label_data.tobytes())
+
+
+def write_sprite_image(filename, images):
+    n_samples, height, width, channels = images.shape
+    n_plots = int(np.ceil(np.sqrt(n_samples)))
+    
+    spriteimage = np.ones((height*n_plots, width*n_plots, channels))
+    
+    for i in range(n_plots):
+        for j in range(n_plots):
+            this_filter = i * n_plots + j
+            if this_filter < n_samples:
+                this_img = images[this_filter]
+                spriteimage[i*height:(i + 1)*height, j*width:(j + 1)*width, :] = this_img
+
+    plt.imsave(filename, spriteimage)
