@@ -40,8 +40,8 @@ def optimizer(beta_1, loss_gen, loss_dis, loss_type, learning_rate_input_g, lear
             '''
 
         elif loss_type == 'standard' or loss_type == 'least square' or 'relativistic' in loss_type:
-            train_generator = tf.train.AdamOptimizer(learning_rate=learning_rate_input_g, beta1=beta_1).minimize(loss_gen, var_list=generator_variables)
             train_discriminator = tf.train.AdamOptimizer(learning_rate=learning_rate_input_d, beta1=beta_1).minimize(loss_dis, var_list=discriminator_variables) 
+            train_generator = tf.train.AdamOptimizer(learning_rate=learning_rate_input_g, beta1=beta_1).minimize(loss_gen, var_list=generator_variables)
             optimizer_print += '%s - AdamOptimizer' % loss_type
         else:
             print('Loss %s not defined' % loss_type)
