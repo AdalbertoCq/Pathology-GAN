@@ -1,5 +1,5 @@
 import tensorflow as tf
-from models.generative.utils import power_iteration_method
+# from models.generative.utils import power_iteration_method
 
 def leakyReLU(x, alpha):
     return tf.maximum(alpha*x, x)
