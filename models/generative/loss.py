@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-def losses(loss_type, output_fake, output_real, logits_fake, logits_real, real_images=None, fake_images=None, discriminator=None, batch_size=None, gp_coeff=None, display=True):
+def losses(loss_type, output_fake, output_real, logits_fake, logits_real, real_images=None, fake_images=None, discriminator=None, gp_coeff=None, display=True):
 
     # Variable to track which loss function is actually used.
     loss_print = ''
