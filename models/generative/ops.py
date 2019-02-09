@@ -1,4 +1,5 @@
 import tensorflow as tf
+from models.generative.utils import power_iteration_method
 
 def leakyReLU(x, alpha):
     return tf.maximum(alpha*x, x)
@@ -48,20 +49,18 @@ def spectral_normalization(filter, power_iterations):
     # If I put trainable = False, I don't need to use tf.stop_gradient()
     u = tf.get_variable('u', shape=u_shape, dtype=tf.float32, initializer=tf.truncated_normal_initializer(), trainable=False)
 
+    # u_norm, singular_w = power_iteration_method(filter_reshape, u, power_iterations)
+
     u_norm = u
     v_norm = None
-    
+
     for i in range(power_iterations):
         v_iter = tf.matmul(u_norm, tf.transpose(filter_reshape))
         v_norm = tf.math.l2_normalize(x=v_iter, epsilon=1e-12)
         u_iter = tf.matmul(v_norm, filter_reshape)
         u_norm = tf.math.l2_normalize(x=u_iter, epsilon=1e-12)
 
-    # How do I verify this?
-    # u_norm = tf.stop_gradient(u_norm)
-    # v_norm = tf.stop_gradient(v_norm)
-
-    singular_w = tf.matmul(tf.matmul(v_norm, filter_reshape), tf.transpose(u_norm))
+    singular_w = tf.matmul(tf.matmul(v_norm, filter_reshape), tf.transpose(u_norm))[0,0]
 
     '''
     tf.assign(ref,  value):
@@ -78,7 +77,19 @@ def spectral_normalization(filter, power_iterations):
     '''
     with tf.control_dependencies([u.assign(u_norm)]):
         filter_normalized = filter / singular_w
-        filter_normalized = tf.reshape(filter_normalized, filter.get_shape())
+        filter_normalized = tf.reshape(filter_normalized, filter.shape)
+
+    # We can control the normalization before the executing the optimizer by runing the update of all the assign operations 
+    # in the variable collection.
+    # filter_normalized = filter / singular_w
+    # filter_normalized = tf.reshape(filter_normalized, filter.shape)
+    # tf.add_to_collection('SPECTRAL_NORM_UPDATE_OPS', u.assign(u_norm))
+
+    # Code to track the normalized values.
+    # filter_normalized_reshape = filter_reshape / singular_w
+    # s, _, _ = tf.svd(filter_normalized_reshape)
+    # tf.summary.scalar(filter.name, s[0])
+
     return filter_normalized
 
 
@@ -105,6 +116,9 @@ def convolutional(inputs, output_channels, filter_size, stride, padding, conv_ty
                 aggregation=tf.VariableAggregation.NONE
             )
         '''
+        # weight_init = tf.initializers.random_normal(stddev=0.02)
+        weight_init = tf.contrib.layers.xavier_initializer_conv2d()
+
         # Shapes.
         current_shape = inputs.get_shape()
         input_channels = current_shape[3]
@@ -112,7 +126,7 @@ def convolutional(inputs, output_channels, filter_size, stride, padding, conv_ty
         else: filter_shape = (filter_size, filter_size, input_channels, output_channels)    
 
         bias = tf.get_variable(name='bias', shape=[output_channels], initializer=tf.constant_initializer(0.0), trainable=True, dtype=tf.float32) 
-        filter = tf.get_variable(name='filter', shape=filter_shape, initializer=tf.contrib.layers.xavier_initializer_conv2d(), trainable=True, dtype=tf.float32)    
+        filter = tf.get_variable(name='filter', shape=filter_shape, initializer=weight_init, trainable=True, dtype=tf.float32)    
         
         '''
         Comparison betweeen previous config to new: tf.contrib.layer.conv2d to tf.nn.conv2d has the same setup.
@@ -243,7 +257,7 @@ def dense(inputs, out_dim, scope, use_bias=True, spectral=False, power_iteration
         
         if use_bias : 
             bias = tf.get_variable('bias', [out_dim], initializer=tf.constant_initializer(0.0), trainable=True, dtype=tf.float32)
-        output += bias
+        output = tf.add(output, bias)
     return output
 
 
