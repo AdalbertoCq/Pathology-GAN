@@ -1,0 +1,73 @@
+# Own implementation
+
+						Real Singular Value W.  	Singular Value Approx W.												  Real Singular Value W_NORM. 
+							S_						Sigma_									S_[0] - Sigma_							S_BAR_
+Iteration Before: 0 	W max SVD:  1.512545 	W max SVD approx:  1.4826441 	Percentage difference:  1.97686068713665 	W_bar max SVD:  1.020167 	Time:  1.0408385609998732
+Iteration After: 0 		W max SVD:  1.512545 	W max SVD approx:  1.4902588 	Percentage difference:  1.4734224416315556 	W_bar max SVD:  1.0149542 	Time:  1.0493907560003208
+NO NORMALIZATION AFTER EACH UPDATE.
+
+Iteration Before: 1 	W max SVD:  1.5125713 	W max SVD approx:  1.490295 	Percentage difference:  1.4727425761520863 	W_bar max SVD:  1.0149475 	Time:  0.009220989999903395
+Iteration After: 1 		W max SVD:  1.5125713 	W max SVD approx:  1.4957013 	Percentage difference:  1.1153207160532475 	W_bar max SVD:  1.0112787 	Time:  0.009982786999898963
+
+Iteration Before: 2 	W max SVD:  1.5126008 	W max SVD approx:  1.4957683 	Percentage difference:  1.112816482782364 	W_bar max SVD:  1.0112529 	Time:  0.008758027000112634
+Iteration After: 2 		W max SVD:  1.5126008 	W max SVD approx:  1.4995534 	Percentage difference:  0.8625764399766922 	W_bar max SVD:  1.0087005 	Time:  0.009609748000002583
+
+Iteration Before: 3 	W max SVD:  1.5126017 	W max SVD approx:  1.4995732 	Percentage difference:  0.8613307029008865 	W_bar max SVD:  1.0086875 	Time:  0.00883600999986811
+Iteration After: 3 		W max SVD:  1.5126017 	W max SVD approx:  1.5022173 	Percentage difference:  0.6865283939987421 	W_bar max SVD:  1.0069128 	Time:  0.009509820999937801
+
+Iteration Before: 4 	W max SVD:  1.5126216 	W max SVD approx:  1.502245 	Percentage difference:  0.6860070861876011 	W_bar max SVD:  1.0069077 	Time:  0.008819261000098777
+Iteration After: 4 		W max SVD:  1.5126216 	W max SVD approx:  1.5041071 	Percentage difference:  0.5628984421491623 	W_bar max SVD:  1.0056609 	Time:  0.009674290000020846
+
+Iteration Before: 5 	W max SVD:  1.5126326 	W max SVD approx:  1.5041302 	Percentage difference:  0.5620905198156834 	W_bar max SVD:  1.0056533 	Time:  0.008793130999947607
+Iteration After: 5 		W max SVD:  1.5126326 	W max SVD approx:  1.5054615 	Percentage difference:  0.47408430837094784 W_bar max SVD:  1.0047635 	Time:  0.009741240000039397
+
+Iteration Before: 6 	W max SVD:  1.5126821 	W max SVD approx:  1.5055323 	Percentage difference:  0.47265817411243916 W_bar max SVD:  1.0047495 	Time:  0.00870664200010651
+Iteration After: 6 		W max SVD:  1.5126821 	W max SVD approx:  1.5065043 	Percentage difference:  0.4083992913365364 	W_bar max SVD:  1.0041007 	Time:  0.009445871000025363
+
+Iteration Before: 7 	W max SVD:  1.512714 	W max SVD approx:  1.5065572 	Percentage difference:  0.4070037044584751 	W_bar max SVD:  1.0040879 	Time:  0.009027711000271665
+Iteration After: 7 		W max SVD:  1.512714 	W max SVD approx:  1.507285 	Percentage difference:  0.35889330320060253 W_bar max SVD:  1.0036025 	Time:  0.009850377000020671
+
+Iteration Before: 8 	W max SVD:  1.5127288 	W max SVD approx:  1.5073075 	Percentage difference:  0.3583775833249092 	W_bar max SVD:  1.0035969 	Time:  0.008826978000342933
+Iteration After: 8 		W max SVD:  1.5127288 	W max SVD approx:  1.5078677 	Percentage difference:  0.3213475225493312 	W_bar max SVD:  1.0032243 	Time:  0.009569793000082427
+
+Iteration Before: 9 	W max SVD:  1.5127522 	W max SVD approx:  1.507903 	Percentage difference:  0.3205545246601105 	W_bar max SVD:  1.0032165 	Time:  0.008944437000081962
+Iteration After: 9 		W max SVD:  1.5127522 	W max SVD approx:  1.5083462 	Percentage difference:  0.2912556054070592 	W_bar max SVD:  1.0029217 	Time:  0.009684033000212366
+
+Iteration Before: 10 	W max SVD:  1.5127968 	W max SVD approx:  1.5083992 	Percentage difference:  0.2906875219196081 	W_bar max SVD:  1.0029155 	Time:  0.008777269000347587
+Iteration After: 10 	W max SVD:  1.5127968 	W max SVD approx:  1.5087597 	Percentage difference:  0.2668582368642092 	W_bar max SVD:  1.0026757 	Time:  0.009545714000068983
+
+
+# Original Implementation
+Iteration Before: 0 	W max SVD:  1.5066929 	W max SVD approx:  1.3833686 	Percentage difference:  8.185096830129623 	W_bar max SVD:  1.0891476 	Time:  0.9803039930002342
+Iteration After: 0 		W max SVD:  1.5066929 	W max SVD approx:  1.40059 		Percentage difference:  7.042108476161957 	W_bar max SVD:  1.0757561 	Time:  0.990336949000266
+NO NORMALIZATION AFTER EACH UPDATE.
+
+Iteration Before: 1 	W max SVD:  1.5066934 	W max SVD approx:  1.4006087 	Percentage difference:  7.040895521640778 	W_bar max SVD:  1.0757421 	Time:  0.009569776999796886
+Iteration After: 1 		W max SVD:  1.5066934 	W max SVD approx:  1.4165436 	Percentage difference:  5.98328523337841 	W_bar max SVD:  1.0636406 	Time:  0.011181825999756256
+
+Iteration Before: 2 	W max SVD:  1.5066984 	W max SVD approx:  1.4165881 	Percentage difference:  5.98064623773098 	W_bar max SVD:  1.063611 	Time:  0.008522137999989354
+Iteration After: 2 		W max SVD:  1.5066984 	W max SVD approx:  1.4304574 	Percentage difference:  5.0601378083229065 	W_bar max SVD:  1.0532986 	Time:  0.009324114999799349
+
+Iteration Before: 3 	W max SVD:  1.5067117 	W max SVD approx:  1.4304618 	Percentage difference:  5.06068654358387 	W_bar max SVD:  1.0533049 	Time:  0.008656075000089913
+Iteration After: 3 		W max SVD:  1.5067117 	W max SVD approx:  1.4419703 	Percentage difference:  4.296865314245224 	W_bar max SVD:  1.0448974 	Time:  0.009341405000213854
+
+Iteration Before: 4 	W max SVD:  1.5067128 	W max SVD approx:  1.4419813 	Percentage difference:  4.296205565333366 	W_bar max SVD:  1.0448905 	Time:  0.010197930000231281
+Iteration After: 4 		W max SVD:  1.5067128 	W max SVD approx:  1.4512317 	Percentage difference:  3.6822594702243805 	W_bar max SVD:  1.03823 	Time:  0.011804045000189944
+
+Iteration Before: 5 	W max SVD:  1.506717 	W max SVD approx:  1.4512591 	Percentage difference:  3.6807063966989517 	W_bar max SVD:  1.0382136 	Time:  0.008632327999748668
+Iteration After: 5 		W max SVD:  1.506717 	W max SVD approx:  1.4585702 	Percentage difference:  3.1954724341630936 	W_bar max SVD:  1.0330096 	Time:  0.009346018000087497
+
+Iteration Before: 6 	W max SVD:  1.5067184 	W max SVD approx:  1.4585959 	Percentage difference:  3.193863108754158 	W_bar max SVD:  1.0329926 	Time:  0.008876181000232464
+Iteration After: 6 		W max SVD:  1.5067184 	W max SVD approx:  1.4643521 	Percentage difference:  2.811823785305023 	W_bar max SVD:  1.0289319 	Time:  0.009760272000221448
+
+Iteration Before: 7 	W max SVD:  1.5067239 	W max SVD approx:  1.464381 	Percentage difference:  2.8102628886699677 	W_bar max SVD:  1.0289159 	Time:  0.008825700000215875
+Iteration After: 7 		W max SVD:  1.5067239 	W max SVD approx:  1.4689363 	Percentage difference:  2.5079283863306046 	W_bar max SVD:  1.025725 	Time:  0.009578165000220906
+
+Iteration Before: 8 	W max SVD:  1.5067348 	W max SVD approx:  1.468914 	Percentage difference:  2.5101175531744957 	W_bar max SVD:  1.0257484 	Time:  0.008706127000095876
+Iteration After: 8 		W max SVD:  1.5067348 	W max SVD approx:  1.472559 	Percentage difference:  2.2682074457406998 	W_bar max SVD:  1.0232092 	Time:  0.009474534000219137
+
+Iteration Before: 9 	W max SVD:  1.5067441 	W max SVD approx:  1.4725696 	Percentage difference:  2.2681064903736115 	W_bar max SVD:  1.0232078 	Time:  0.00860039000008328
+Iteration After: 9 		W max SVD:  1.5067441 	W max SVD approx:  1.4755278 	Percentage difference:  2.071777358651161 	W_bar max SVD:  1.0211564 	Time:  0.00932927900021241
+
+Iteration Before: 10 	W max SVD:  1.5067537 	W max SVD approx:  1.4755384 	Percentage difference:  2.071692980825901 	W_bar max SVD:  1.021155 	Time:  0.009660897000230761
+Iteration After: 10 	W max SVD:  1.5067537 	W max SVD approx:  1.4779732 	Percentage difference:  1.9100971519947052 	W_bar max SVD:  1.0194727 	Time:  0.010637690000294242
