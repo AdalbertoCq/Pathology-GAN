@@ -151,3 +151,5 @@ def write_sprite_image(filename, data, metadata=True):
     data = (data * 255).astype(np.uint8)
     
     plt.imsave(filename, data)
+
+    return data
