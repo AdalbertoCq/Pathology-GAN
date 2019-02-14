@@ -1,10 +1,12 @@
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+import random
 import numpy as np
 import os
 import shutil
 import h5py
 import tensorflow as tf
+
 
 # Simple function to plot number images.
 def plot_images(plt_num, images, dim, title=None, axis='off'):
@@ -46,6 +48,7 @@ def get_checkpoint(data_out_path, which=0):
     print('No model to restore')
     exit()
 
+
 # Method to setup 
 def setup_output(show_epochs, epochs, data, n_images, z_dim, data_out_path, model_name, restore, save_img):
 
@@ -83,14 +86,23 @@ def setup_output(show_epochs, epochs, data, n_images, z_dim, data_out_path, mode
 
     return img_storage, latent_storage, checkpoints
 
+
 # Run session to generate output samples.
 def show_generated(session, z_input, z_dim, output_fake, n_images, dim=20, show=True):
-    sample_z = np.random.uniform(low=-1., high=1., size=(n_images, z_dim))
-    feed_dict = {z_input:sample_z}
-    gen_samples = session.run(output_fake, feed_dict=feed_dict)
+    gen_samples = list()
+    sample_z = list()
+    batch_sample = 20
+    for x in range(n_images):
+        rand_sample = random.randint(0,batch_sample-1)
+        z_batch = np.random.uniform(low=-1., high=1., size=(batch_sample, z_dim))
+        feed_dict = {z_input:z_batch}
+        gen_batch = session.run(output_fake, feed_dict=feed_dict)
+        gen_samples.append(gen_batch[rand_sample, :, :, :])
+        sample_z.append(z_batch[rand_sample, :])
     if show:
         plot_images(plt_num=n_images, images=gen_samples, dim=dim)    
-    return gen_samples, sample_z
+    return np.array(gen_samples), np.array(sample_z)
+
 
 # Method to report parameter in the run.
 def report_parameters(model, epochs, restore, data_out_path):

@@ -71,7 +71,7 @@ def spectral_normalization(filter, power_iterations):
     with g.control_dependencies([a, b, c]):
             `d` and `e` will only run after `a`, `b`, and `c` have executed.
 
-        To keep value of u_nom in u?
+    To keep value of u_nom in u?
     If I put this here, the filter won't be use in here until the normalization is done and the value of u_norm kept in u.
     The kernel of the conv it's a variable it self, with its dependencies.
     '''
@@ -85,11 +85,13 @@ def spectral_normalization(filter, power_iterations):
     # filter_normalized = tf.reshape(filter_normalized, filter.shape)
     # tf.add_to_collection('SPECTRAL_NORM_UPDATE_OPS', u.assign(u_norm))
 
-    # Code to track the normalized values.
-    # filter_normalized_reshape = filter_reshape / singular_w
-    # s, _, _ = tf.svd(filter_normalized_reshape)
-    # tf.summary.scalar(filter.name, s[0])
-
+    '''
+    CODE TRACK SINGULAR VALUE OF WEIGHTS.
+    filter_normalized_reshape = filter_reshape / singular_w
+    s, _, _ = tf.svd(filter_normalized_reshape)
+    tf.summary.scalar(filter.name, s[0])
+    '''
+    
     return filter_normalized
 
 
