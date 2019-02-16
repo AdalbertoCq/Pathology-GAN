@@ -129,7 +129,7 @@ class GAN:
 		self.output_gen = self.generator(self.z_input, reuse=True, is_train=False)
 
 
-	def train(self, epochs, data_out_path, data, restore, show_epochs=100, print_epochs=10, n_images=10, save_img=False):
+	def train(self, epochs, data_out_path, data, restore, show_epochs=100, print_epochs=10, n_images=10, save_checkpoint=100, save_img=False):
 		run_epochs = 0    
 		losses = list()
 		saver = tf.train.Saver()
@@ -161,12 +161,13 @@ class GAN:
 						epoch_loss_dis, epoch_loss_gen = session.run([self.loss_dis, self.loss_gen], feed_dict=feed_dict)
 						losses.append((epoch_loss_dis, epoch_loss_gen))
 						print('Epochs %s/%s: Generator Loss: %s. Discriminator Loss: %s' % (epoch, epochs, np.round(epoch_loss_gen, 4), np.round(epoch_loss_dis, 4)))
-					if run_epochs % show_epochs == 0:
+					if show_epochs is not None and run_epochs % show_epochs == 0:
 						gen_samples, sample_z = show_generated(session=session, z_input=self.z_input, z_dim=self.z_dim, output_fake=self.output_gen, n_images=n_images)
 						if save_img:
 							img_storage[run_epochs//show_epochs] = gen_samples
 							latent_storage[run_epochs//show_epochs] = sample_z
-						saver.save(sess=session, save_path=checkpoints, global_step=run_epochs)
+					if run_epochs % save_checkpoint == 0:
+						saver.save(sess=session, save_path=checkpoints)
 
 					run_epochs += 1
 				data.training.reset()
