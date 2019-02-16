@@ -1,6 +1,9 @@
 import tensorflow as tf
+import numpy as np
+import sys
 
-def losses(loss_type, output_fake, output_real, logits_fake, logits_real, real_images=None, fake_images=None, discriminator=None, gp_coeff=None, display=True):
+def losses(loss_type, output_fake, output_real, logits_fake, logits_real, real_images=None, fake_images=None, discriminator=None, gp_coeff=None, mean_c_x_fake=None, 
+           logs2_c_x_fake=None, input_c=None, delta=1, display=True):
 
     # Variable to track which loss function is actually used.
     loss_print = ''
@@ -37,7 +40,8 @@ def losses(loss_type, output_fake, output_real, logits_fake, logits_real, real_i
             # Calculating X hat.
             epsilon = tf.random.uniform(shape=tf.stack([tf.shape(real_images)[0], 1, 1, 1]), minval=0.0, maxval=1.0, dtype=tf.float32, name='epsilon')
             x_gp = real_images*(1-epsilon) + fake_images*epsilon
-            output_gp, logits_gp = discriminator(x_gp, True)
+            out = discriminator(x_gp, True)
+            logits_gp = out[1]
 
             # Calculating Gradient Penalty.
             grad_gp = tf.gradients(logits_gp, x_gp)
@@ -55,7 +59,7 @@ def losses(loss_type, output_fake, output_real, logits_fake, logits_real, real_i
             loss_gen = loss_gen_real + loss_gen_fake
             loss_print += 'gradient penalty '
 
-    elif loss_type == 'standard':
+    elif 'standard' in loss_type:
         # Discriminator loss. Uses hinge loss on discriminator.
         loss_dis_fake = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=logits_fake, labels=tf.zeros_like(output_fake)))
         loss_dis_real = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=logits_real, labels=tf.ones_like(output_fake)*0.9))
@@ -67,7 +71,7 @@ def losses(loss_type, output_fake, output_real, logits_fake, logits_real, real_i
         loss_gen = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=logits_fake, labels=tf.ones_like(output_fake)))
         loss_print += 'standard '
 
-    elif loss_type == 'least square':       
+    elif 'least square' in loss_type:       
         # Discriminator loss.
         loss_dis_fake = tf.reduce_mean(tf.square(output_fake))
         loss_dis_real = tf.reduce_mean(tf.square(output_real-1.0))
@@ -90,7 +94,8 @@ def losses(loss_type, output_fake, output_real, logits_fake, logits_real, real_i
             # Calculating X hat.
             epsilon = tf.random.uniform(shape=tf.stack([tf.shape(real_images)[0], 1, 1, 1]), minval=0.0, maxval=1.0, dtype=tf.float32, name='epsilon')
             x_gp = real_images*(1-epsilon) + fake_images*epsilon
-            output_gp, logits_gp = discriminator(x_gp, True)
+            out = discriminator(x_gp, True)
+            logits_gp = out[1]
 
             # Calculating Gradient Penalty.
             grad_gp = tf.gradients(logits_gp, x_gp)
@@ -99,7 +104,7 @@ def losses(loss_type, output_fake, output_real, logits_fake, logits_real, real_i
             loss_dis += (gp_coeff*grad_penalty)
             loss_print += 'gradient penalty '
         
-    elif loss_type == 'hinge':
+    elif 'hinge' in loss_type:
 
         loss_dis_real = tf.reduce_mean(min(0, -1 + logits_real))
         loss_dis_fake = tf.reduce_mean(min(0, -1 - logits_fake))
@@ -110,11 +115,26 @@ def losses(loss_type, output_fake, output_real, logits_fake, logits_real, real_i
 
     else:
         print('Loss %s not defined' % loss_type)
-        exit(1)
+        sys.exit(1)
+
+    if 'infogan' in loss_type:
+        epsilon = 1e-9
+        c_sigma2 = tf.exp(logs2_c_x_fake)
+        log_sigma2 = tf.log(c_sigma2 + epsilon)
+        mean_sq_diff = (input_c - mean_c_x_fake)**2
+        last = mean_sq_diff/(c_sigma2 + epsilon)
+        mututal_loss = tf.reduce_mean(-0.5*(tf.log(2*np.pi)+log_sigma2+last))
+
+        loss_dis -= delta*mututal_loss
+        loss_gen -= delta*mututal_loss
+        loss_print += 'infogan '
 
     if display:
         print('Loss: %s' % loss_print)
 
+    if 'infogan' in loss_type:
+        return loss_dis, loss_gen, mututal_loss
+        
     return loss_dis, loss_gen
 
 

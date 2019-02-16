@@ -39,7 +39,7 @@ def optimizer(beta_1, loss_gen, loss_dis, loss_type, learning_rate_input_g, lear
             optimizer_print += 'Wassertein Distance - RMSPropOptimizer'
             '''
 
-        elif loss_type == 'standard' or loss_type == 'least square' or 'relativistic' in loss_type:
+        elif 'standard' in loss_type or 'least square' in loss_type or 'relativistic' in loss_type:
             train_discriminator = tf.train.AdamOptimizer(learning_rate=learning_rate_input_d, beta1=beta_1).minimize(loss_dis, var_list=discriminator_variables) 
             train_generator = tf.train.AdamOptimizer(learning_rate=learning_rate_input_g, beta1=beta_1).minimize(loss_gen, var_list=generator_variables)
             optimizer_print += '%s - AdamOptimizer' % loss_type
