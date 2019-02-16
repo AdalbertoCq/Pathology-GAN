@@ -57,7 +57,7 @@ def linear_interpolation(model, n_images, data_out_path, orig_vector, dest_vecto
 
 # Generates samples from the latent space to show in tensorboard. 
 # Restores a model and somples from it.
-def run_latent(model, n_images, data_out_path):
+def run_latent(model, n_images, data_out_path, sprite=True):
 	
 	tensorboard_path = os.path.join(data_out_path, 'tensorboard')
 	saver = tf.train.Saver()
@@ -73,11 +73,13 @@ def run_latent(model, n_images, data_out_path):
 		input_sample = tf.placeholder(tf.float32, shape=(n_images, model.z_dim))
 		set_tf_data = tf.assign(tf_data, input_sample, validate_shape=False)
 
-		# Sample images.
-		gen_samples, sample_z = show_generated(session=session, z_input=model.z_input, z_dim=model.z_dim, output_fake=model.output_gen, n_images=n_images, show=False)
-
-		# Generate sprite of images.
-		write_sprite_image(os.path.join(data_out_path, 'gen_sprite.png'), gen_samples)
+		if sprite:
+			# Sample images.
+			gen_samples, sample_z = show_generated(session=session, z_input=model.z_input, z_dim=model.z_dim, output_fake=model.output_gen, n_images=n_images, show=False)
+			# Generate sprite of images.
+			write_sprite_image(os.path.join(data_out_path, 'gen_sprite.png'), gen_samples)
+		else:
+			sample_z = np.random.uniform(low=-1., high=1., size=(n_images, model.z_dim))
 
 		# Variable for embedding.
 		saver_latent = tf.train.Saver([tf_data])
@@ -88,10 +90,10 @@ def run_latent(model, n_images, data_out_path):
 		config = projector.ProjectorConfig()
 		embedding = config.embeddings.add()
 		embedding.tensor_name = tf_data.name
-		embedding.metadata_path = os.path.join(data_out_path, 'metadata.tsv')
-		embedding.sprite.image_path = os.path.join(data_out_path, 'gen_sprite.png')
+		if sprite:
+			embedding.metadata_path = os.path.join(data_out_path, 'metadata.tsv')
+			embedding.sprite.image_path = os.path.join(data_out_path, 'gen_sprite.png')
 		embedding.sprite.single_image_dim.extend([model.image_height, model.image_width])
 		projector.visualize_embeddings(tf.summary.FileWriter(tensorboard_path), config)	
 
 
-		
