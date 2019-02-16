@@ -72,10 +72,10 @@ def setup_output(show_epochs, epochs, data, n_images, z_dim, data_out_path, mode
     image_width = data.training.patch_w
     image_channels = data.training.n_channels
 
-    size_img = (epochs*data.training.iterations)//show_epochs+1
-    img_db_shape = (size_img, n_images, image_height, image_width, image_channels)
-    latent_db_shape = (size_img, n_images, z_dim)
     if save_img:
+        size_img = (epochs*data.training.iterations)//show_epochs+1
+        img_db_shape = (size_img, n_images, image_height, image_width, image_channels)
+        latent_db_shape = (size_img, n_images, z_dim)
         hdf5_gen = h5py.File(gen_images, mode='w')
         hdf5_latent = h5py.File(latent_images, mode='w')
         img_storage = hdf5_gen.create_dataset(name='generated_img', shape=img_db_shape, dtype=np.float32)
@@ -88,19 +88,23 @@ def setup_output(show_epochs, epochs, data, n_images, z_dim, data_out_path, mode
 
 
 # Run session to generate output samples.
-def show_generated(session, z_input, z_dim, output_fake, n_images, dim=20, show=True):
+def show_generated(session, z_input, z_dim, output_fake, n_images, c_input=None, c_dim=None, dim=20, show=True):
     gen_samples = list()
     sample_z = list()
     batch_sample = 20
     for x in range(n_images):
         rand_sample = random.randint(0,batch_sample-1)
+        
         z_batch = np.random.uniform(low=-1., high=1., size=(batch_sample, z_dim))
         feed_dict = {z_input:z_batch}
+        if c_input is not None:
+            c_batch = np.random.normal(loc=0.0, scale=1.0, size=(batch_sample, c_dim))
+            feed_dict[c_input] = c_batch
         gen_batch = session.run(output_fake, feed_dict=feed_dict)
         gen_samples.append(gen_batch[rand_sample, :, :, :])
         sample_z.append(z_batch[rand_sample, :])
     if show:
-        plot_images(plt_num=n_images, images=gen_samples, dim=dim)    
+        plot_images(plt_num=n_images, images=np.array(gen_samples), dim=dim)    
     return np.array(gen_samples), np.array(sample_z)
 
 
