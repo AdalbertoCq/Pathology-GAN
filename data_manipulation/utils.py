@@ -122,7 +122,7 @@ def write_label_data(label_data, file_name):
         f.write(label_data.tobytes())
 
 
-def write_sprite_image(filename, data, metadata=True):
+def write_sprite_image(data, filename=None, metadata=True):
 
     if metadata:
         with open(filename.replace('gen_sprite.png', 'metadata.tsv'),'w') as f:
@@ -150,6 +150,7 @@ def write_sprite_image(filename, data, metadata=True):
     data = data.reshape((n * data.shape[1], n * data.shape[3]) + data.shape[4:])
     data = (data * 255).astype(np.uint8)
     
-    plt.imsave(filename, data)
+    if filename is not None:
+        plt.imsave(filename, data)
 
     return data
