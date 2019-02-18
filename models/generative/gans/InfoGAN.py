@@ -147,7 +147,7 @@ class InfoGAN(GAN):
 		self.output_gen = self.generator(self.z_input, self.c_input, reuse=True, is_train=False)
 
 
-	def train(self, epochs, data_out_path, data, restore, show_epochs=100, print_epochs=10, n_images=10, save_checkpoint=100, save_img=False):
+	def train(self, epochs, data_out_path, data, restore, show_epochs=100, print_epochs=10, n_images=10, save_img=False):
 		run_epochs = 0    
 		losses = list()
 		saver = tf.train.Saver()

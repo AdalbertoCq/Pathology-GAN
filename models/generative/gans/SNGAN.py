@@ -178,7 +178,7 @@ class SNGAN(GAN):
 		train_discriminator, train_generator = optimizer(self.beta_1, self.loss_gen, self.loss_dis, self.loss_type, self.learning_rate_input_g, self.learning_rate_input_d, beta_2=self.beta_2)
 		return train_discriminator, train_generator
 
-	def train(self, epochs, data_out_path, data, restore, show_epochs=100, print_epochs=10, n_images=10, save_checkpoint=100, save_img=False):
+	def train(self, epochs, data_out_path, data, restore, show_epochs=100, print_epochs=10, n_images=10, save_img=False):
 		run_epochs = 0    
 		losses = list()
 		saver = tf.train.Saver()
@@ -200,6 +200,7 @@ class SNGAN(GAN):
 				print('Restored model: %s' % check)
 			writer = tf.summary.FileWriter(os.path.join(data_out_path, 'tensorboard'), graph_def=session.graph_def)	
 			for epoch in range(1, epochs+1):
+				saver.save(sess=session, save_path=checkpoints)
 				for batch_images, batch_labels in data.training:
 
 					# Normalize weights using the operation collection instead of the control dependencies.
@@ -230,9 +231,6 @@ class SNGAN(GAN):
 						if save_img:
 							img_storage[run_epochs//show_epochs] = gen_samples
 							latent_storage[run_epochs//show_epochs] = sample_z
-					if run_epochs % save_checkpoint == 0:
-						saver.save(sess=session, save_path=checkpoints)
-
 					run_epochs += 1
 				data.training.reset()
 		save_loss(losses, data_out_path, dim=30)

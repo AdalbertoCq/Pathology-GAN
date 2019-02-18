@@ -9,21 +9,21 @@ from models.generative.gans.GAN import GAN
 
 class InfoSNGAN(GAN):
 	def __init__(self,
-				data,                        # Dataset class, training and test data.
-				z_dim,                       # Latent space dimensions.
-				c_dim,                       		# C Latent space dimensions.
-				use_bn,                      # Batch Normalization flag to control usage in discriminator.
-				alpha,                       # Alpha value for LeakyReLU.
-				beta_1,                      # Beta 1 value for Adam Optimizer.
-				learning_rate_g,             # Learning rate generator.
-				learning_rate_d,             # Learning rate discriminator.
-				delta=1, 						 		# Delta hyperparameter.
-				power_iterations=1,          # Iterations of the power iterative method: Calculation of Eigenvalues, Singular Values.
-				beta_2=None,                 # Beta 2 value for Adam Optimizer.
-				n_critic=1,                  # Number of batch gradient iterations in Discriminator per Generator.
-				gp_coeff=.5,                 # Gradient Penalty coefficient for the Wasserstein Gradient Penalty loss.
-				loss_type='standard infogan',        # Loss function type: Standard, Least Square, Wasserstein, Wasserstein Gradient Penalty.
-				model_name='InfoSNGAN'           # Name to give to the model.
+				data,                        	# Dataset class, training and test data.
+				z_dim,                       	# Latent space dimensions.
+				c_dim,                       	# C Latent space dimensions.
+				use_bn,                      	# Batch Normalization flag to control usage in discriminator.
+				alpha,                       	# Alpha value for LeakyReLU.
+				beta_1,                      	# Beta 1 value for Adam Optimizer.
+				learning_rate_g,             	# Learning rate generator.
+				learning_rate_d,             	# Learning rate discriminator.
+				delta=1, 						# Delta hyperparameter.
+				power_iterations=1,          	# Iterations of the power iterative method: Calculation of Eigenvalues, Singular Values.
+				beta_2=None,                 	# Beta 2 value for Adam Optimizer.
+				n_critic=1,                  	# Number of batch gradient iterations in Discriminator per Generator.
+				gp_coeff=.5,                 	# Gradient Penalty coefficient for the Wasserstein Gradient Penalty loss.
+				loss_type='standard infogan',   # Loss function type: Standard, Least Square, Wasserstein, Wasserstein Gradient Penalty.
+				model_name='InfoSNGAN'          # Name to give to the model.
 				):
 
 		# Training parameters
@@ -216,7 +216,7 @@ class InfoSNGAN(GAN):
 		self.output_gen = self.generator(self.z_input, self.c_input, reuse=True, is_train=False)
 
 
-	def train(self, epochs, data_out_path, data, restore, show_epochs=100, print_epochs=10, n_images=10, save_checkpoint=100, save_img=False):
+	def train(self, epochs, data_out_path, data, restore, show_epochs=100, print_epochs=10, n_images=10, save_img=False):
 		run_epochs = 0    
 		losses = list()
 		saver = tf.train.Saver()
@@ -238,6 +238,7 @@ class InfoSNGAN(GAN):
 				print('Restored model: %s' % check)
 			writer = tf.summary.FileWriter(os.path.join(data_out_path, 'tensorboard'), graph_def=session.graph_def)	
 			for epoch in range(1, epochs+1):
+				saver.save(sess=session, save_path=checkpoints)
 				for batch_images, batch_labels in data.training:
 
 					# Normalize weights using the operation collection instead of the control dependencies.
@@ -272,10 +273,7 @@ class InfoSNGAN(GAN):
 						if save_img:
 							img_storage[run_epochs//show_epochs] = gen_samples
 							latent_storage[run_epochs//show_epochs] = sample_z
-					if run_epochs % save_checkpoint == 0:
-						print('Saving checkpoint %s ...' % run_epochs)
-						saver.save(sess=session, save_path=checkpoints)
-
+				
 					run_epochs += 1
 				data.training.reset()
 		save_loss(losses, data_out_path, dim=30)
