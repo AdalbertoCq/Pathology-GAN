@@ -25,14 +25,14 @@ image_height = 224
 image_channels = 3
 dataset='nki'
 marker='he'
-name_run = 'h%s_w%s_n%s' % (image_height, image_width, image_channels)
+name_run = 'h%s_w%s_n%s_cdim_30' % (image_height, image_width, image_channels)
 data_out_path = '%s/%s' % (main_path, name_run)
 
 # Hyperparameters.
-epochs = 50
+epochs = 60
 batch_size = 64
 z_dim = 100
-c_dim = 10
+c_dim = 30
 learning_rate_g = 1e-4
 learning_rate_d = 1e-4
 alpha = 0.2
