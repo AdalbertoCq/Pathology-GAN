@@ -15,7 +15,7 @@ def generate_samples(model, n_images, data_out_path):
 		gen_samples, sample_z = show_generated(session=session, z_input=model.z_input, z_dim=model.z_dim, output_fake=model.output_gen, n_images=n_images, show=False)
 
 	# Dump images into sprite.
-	image_sprite = write_sprite_image(os.path.join(data_out_path, 'geneated_samples.png'), gen_samples, metadata=False)
+	image_sprite = write_sprite_image(filename=os.path.join(data_out_path, 'geneated_samples.png'), data=gen_samples, metadata=False)
 
 	return gen_samples, sample_z, image_sprite
 
@@ -77,7 +77,7 @@ def run_latent(model, n_images, data_out_path, sprite=True):
 			# Sample images.
 			gen_samples, sample_z = show_generated(session=session, z_input=model.z_input, z_dim=model.z_dim, output_fake=model.output_gen, n_images=n_images, show=False)
 			# Generate sprite of images.
-			write_sprite_image(os.path.join(data_out_path, 'gen_sprite.png'), gen_samples)
+			write_sprite_image(filename=os.path.join(data_out_path, 'gen_sprite.png'), data=gen_samples)
 		else:
 			sample_z = np.random.uniform(low=-1., high=1., size=(n_images, model.z_dim))
 
