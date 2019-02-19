@@ -9,7 +9,7 @@ import tensorflow as tf
 
 
 # Simple function to plot number images.
-def plot_images(plt_num, images, dim, title=None, axis='off'):
+def plot_images(plt_num, images, dim, title=None, axis='off', row_n=None):
     # Standard parameters for the plot.
     
     mpl.rcParams['figure.figsize'] = dim, dim
@@ -17,6 +17,7 @@ def plot_images(plt_num, images, dim, title=None, axis='off'):
     fig = plt.figure()
     if title is not None:
         fig.suptitle(title)
+
     for i in range(0, plt_num):
         fig.add_subplot(1, 10, i+1)
         img = images[i, :, :, :]
@@ -30,8 +31,15 @@ def save_loss(losses, data_out_path, dim):
     mpl.rcParams["figure.figsize"] = dim, dim
     plt.rcParams.update({'font.size': 22})
     losses = np.array(losses)
-    plt.plot(losses[:, 0], label='Discriminator', alpha=0.5)
-    plt.plot(losses[:, 1], label='Generator', alpha=0.5)
+    num_loss = losses.shape[1]
+    for _ in range(num_loss):
+        if _ == 0:
+            label = 'Generator'
+        elif _ == 1:
+            label = 'Discriminator'
+        else:
+            label = 'Mutual Information'
+        plt.plot(losses[:, _], label=label, alpha=0.5)
     plt.title("Training Losses")
     plt.legend()
     plt.savefig('%s/training_loss.png' % data_out_path)

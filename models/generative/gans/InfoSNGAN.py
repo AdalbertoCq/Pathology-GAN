@@ -264,7 +264,7 @@ class InfoSNGAN(GAN):
 		            # Print losses and Generate samples.
 					if run_epochs % print_epochs == 0:
 						epoch_loss_dis, epoch_loss_gen, epoch_loss_mut = session.run([self.loss_dis, self.loss_gen, self.mututal_loss], feed_dict=feed_dict)
-						losses.append((epoch_loss_dis, epoch_loss_gen))
+						losses.append((epoch_loss_dis, epoch_loss_gen, epoch_loss_mut))
 						print('Epochs %s/%s: Generator Loss: %s. Discriminator Loss: %s Mutual Information Loss: %s' % 
 							(epoch, epochs, np.round(epoch_loss_gen, 4), np.round(epoch_loss_dis, 4), np.round(epoch_loss_mut, 4)))
 					if show_epochs is not None and run_epochs % show_epochs == 0:
@@ -273,7 +273,8 @@ class InfoSNGAN(GAN):
 						if save_img:
 							img_storage[run_epochs//show_epochs] = gen_samples
 							latent_storage[run_epochs//show_epochs] = sample_z
-				
+					
 					run_epochs += 1
 				data.training.reset()
+
 		save_loss(losses, data_out_path, dim=30)
