@@ -263,3 +263,26 @@ def dense(inputs, out_dim, scope, use_bias=True, spectral=False, power_iteration
     return output
 
 
+def residual_block(inputs, filter_size, stride, padding, channels, scope, is_training=True, use_bn=False, use_bias=True, spectral=False, activation=None, power_iterations=1):
+    with tf.variable_scope('resblock_%s' % scope):
+        with tf.variable_scope('part_1'):
+            # Convolutional
+            net = convolutional(inputs, channels, filter_size, stride, padding, 'convolutional', scope=1, spectral=spectral, power_iterations=power_iterations)
+            # Batch Normalization
+            if use_bn: net = tf.layers.batch_normalization(inputs=net, training=is_training)
+            # Activation
+            if activation is not None: net = activation(net)
+        
+        with tf.variable_scope('part_2'):
+            # Convolutional
+            net = convolutional(net, channels, filter_size, stride, padding, 'convolutional', scope=1, spectral=spectral, power_iterations=power_iterations)
+            # Batch Normalization
+            if use_bn: net = tf.layers.batch_normalization(inputs=net, training=is_training)
+            # Activation
+            if activation is not None: net = activation(net)
+        return inputs + net
+
+
+            
+
+
