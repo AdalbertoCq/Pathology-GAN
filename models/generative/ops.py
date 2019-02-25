@@ -95,7 +95,7 @@ def spectral_normalization(filter, power_iterations):
     return filter_normalized
 
 
-def convolutional(inputs, output_channels, filter_size, stride, padding, conv_type, scope, data_format='NHWC', output_shape=None, spectral=False, power_iterations=None):
+def convolutional(inputs, output_channels, filter_size, stride, padding, conv_type, scope, data_format='NHWC', output_shape=None, spectral=False, power_iterations=1):
     with tf.variable_scope('conv_layer_%s' % scope):
         '''
         Kernel and bias initilization, adding this whole documentation to make sure transition for tf.contrib.layer.conv2d to tf.nn.conv2d has the same setup as 
@@ -246,7 +246,7 @@ def convolutional(inputs, output_channels, filter_size, stride, padding, conv_ty
     return output
 
 
-def dense(inputs, out_dim, scope, use_bias=True, spectral=False, power_iterations=None):
+def dense(inputs, out_dim, scope, use_bias=True, spectral=False, power_iterations=1):
     with tf.variable_scope('dense_layer_%s' % scope):
         
         in_dim = inputs.get_shape()[-1]
@@ -272,7 +272,7 @@ def residual_block(inputs, filter_size, stride, padding, channels, scope, is_tra
             if use_bn: net = tf.layers.batch_normalization(inputs=net, training=is_training)
             # Activation
             if activation is not None: net = activation(net)
-        
+            
         with tf.variable_scope('part_2'):
             # Convolutional
             net = convolutional(net, channels, filter_size, stride, padding, 'convolutional', scope=1, spectral=spectral, power_iterations=power_iterations)
@@ -280,6 +280,7 @@ def residual_block(inputs, filter_size, stride, padding, channels, scope, is_tra
             if use_bn: net = tf.layers.batch_normalization(inputs=net, training=is_training)
             # Activation
             if activation is not None: net = activation(net)
+            
         return inputs + net
 
 
