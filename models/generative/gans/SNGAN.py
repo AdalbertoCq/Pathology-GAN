@@ -3,6 +3,7 @@ import tensorflow_probability as tfp
 from models.generative.ops import *
 from models.generative.utils import *
 from models.generative.loss import *
+from models.generative.activation import *
 from models.generative.optimizer import *
 from models.generative.gans.GAN import GAN
 
