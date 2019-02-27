@@ -34,6 +34,7 @@ class SNGAN(GAN):
 		self.beta_2 = beta_2
 		self.spec_ops_name = 'SPECTRAL_NORM_UPDATE_OPS'
 		super().__init__(data=data, z_dim=z_dim, use_bn=use_bn, alpha=alpha, beta_1=beta_1, learning_rate_g=learning_rate_g, learning_rate_d=learning_rate_d, n_critic=n_critic, loss_type=loss_type, model_name=model_name)
+		# self.sing_jacob = check_jacobian_singular()
 
 	def discriminator(self, images, reuse):
 		output, logits = discriminator_resnet(images=images, layers=5, spectral=True, activation=leakyReLU, reuse=reuse)
@@ -52,9 +53,15 @@ class SNGAN(GAN):
 		train_discriminator, train_generator = optimizer(self.beta_1, self.loss_gen, self.loss_dis, self.loss_type, self.learning_rate_input_g, self.learning_rate_input_d, beta_2=self.beta_2)
 		return train_discriminator, train_generator
 
+	def check_jacobian_singular(self):
+		gen_jacob = tf.gradients(ys=self.fake_images, xs=self.z_input)
+		s, _, _ = tf.svd(gen_jacob)
+		return s 
+
+
 	def train(self, epochs, data_out_path, data, restore, show_epochs=100, print_epochs=10, n_images=10, save_img=False):
 		run_epochs = 0    
-		losses = list()
+		losses = list() 
 		saver = tf.train.Saver()
 
 		img_storage, latent_storage, checkpoints = setup_output(show_epochs, epochs, data, n_images, self.z_dim, data_out_path, self.model_name, restore, save_img)
