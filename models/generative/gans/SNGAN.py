@@ -3,8 +3,11 @@ import tensorflow_probability as tfp
 from models.generative.ops import *
 from models.generative.utils import *
 from models.generative.loss import *
-from models.generative.activation import *
+from models.generative.activations import *
+from models.generative.normalization import *
 from models.generative.optimizer import *
+from models.generative.discriminator import *
+from models.generative.generator import *
 from models.generative.gans.GAN import GAN
 
 
@@ -33,147 +36,17 @@ class SNGAN(GAN):
 		super().__init__(data=data, z_dim=z_dim, use_bn=use_bn, alpha=alpha, beta_1=beta_1, learning_rate_g=learning_rate_g, learning_rate_d=learning_rate_d, n_critic=n_critic, loss_type=loss_type, model_name=model_name)
 
 	def discriminator(self, images, reuse):
-		with tf.variable_scope('discriminator', reuse=reuse):
-			# Padding = 'Same' -> H_new = H_old // Stride
-
-			# Input Shape = (None, 224, 224, 3)
-			
-			# Conv.
-			net = convolutional(inputs=images, output_channels=32, filter_size=5, stride=2, padding='SAME', conv_type='convolutional', spectral=True, power_iterations=self.power_iterations, scope=1)
-			# net = attention_block(x=net, i=1)
-			if self.use_bn: net = tf.layers.batch_normalization(inputs=net, training=True)
-			net = leakyReLU(net, self.alpha)
-			# Shape = (None, 112, 112, 32)
-
-			# Conv.
-			net = convolutional(inputs=net, output_channels=64, filter_size=5, stride=2, padding='SAME', conv_type='convolutional', spectral=True, power_iterations=self.power_iterations, scope=2)
-			# net = attention_block(x=net, i=2)
-			if self.use_bn: net = tf.layers.batch_normalization(inputs=net, training=True)
-			net = leakyReLU(net, self.alpha)
-			# Shape = (None, 56, 56, 64)
-
-			# Conv.
-			net = convolutional(inputs=net, output_channels=128, filter_size=5, stride=2, padding='SAME', conv_type='convolutional', spectral=True, power_iterations=self.power_iterations, scope=3)
-			# net = attention_block(x=net, i=3)
-			if self.use_bn: net = tf.layers.batch_normalization(inputs=net, training=True)
-			net = leakyReLU(net, self.alpha)
-			# Shape = (None, 28, 28, 128)
-
-			# Conv.
-			net = convolutional(inputs=net, output_channels=256, filter_size=5, stride=2, padding='SAME', conv_type='convolutional', spectral=True, power_iterations=self.power_iterations, scope=4)
-			# net = attention_block(x=net, i=4)
-			if self.use_bn: net = tf.layers.batch_normalization(inputs=net, training=True)
-			net = leakyReLU(net, self.alpha)
-			# Shape = (None, 14, 14, 256)
-
-			# Conv.
-			net = convolutional(inputs=net, output_channels=512, filter_size=5, stride=2, padding='SAME', conv_type='convolutional', spectral=True, power_iterations=self.power_iterations, scope=5)
-			# net = attention_block(x=net, i=5)
-			if self.use_bn: net = tf.layers.batch_normalization(inputs=net, training=True)
-			net = leakyReLU(net, self.alpha)
-			# Shape = (None, 7, 7, 512)
-
-			# Flatten.
-			net = tf.layers.flatten(inputs=net)
-			# Shape = (None, 7*7*512)
-
-			# Dense.
-			net = dense(inputs=net, out_dim=1024, spectral=True, power_iterations=self.power_iterations, scope=1)				
-			if self.use_bn: net = tf.layers.batch_normalization(inputs=net, training=True)
-			net = leakyReLU(net, self.alpha)
-			# Shape = (None, 1024)
-
-			# Dense
-			logits = dense(inputs=net, out_dim=1, spectral=True, power_iterations=self.power_iterations, scope=2)				
-			# Shape = (None, 1)
-			output = tf.nn.sigmoid(x=logits)
-
-			# Padding = 'Same' -> H_new = H_old // Stride
-
+		output, logits = discriminator(images=images, layers=5, spectral=True, activation=leakyReLU, reuse=reuse)
 		return output, logits
 
 	def generator(self, z_input, reuse, is_train):
-		with tf.variable_scope('generator', reuse=reuse):
-			# Doesn't work ReLU, tried.
-			# Input Shape = (None, 100)
-			# Dense.			
-			net = dense(inputs=z_input, out_dim=1024, spectral=False, power_iterations=self.power_iterations, scope=1)				
-			net = tf.layers.batch_normalization(inputs=net, training=is_train)
-			net = leakyReLU(net, self.alpha)
-			# Shape = (None, 1024)
-
-			# Dense.
-			net = dense(inputs=net, out_dim=256*7*7, spectral=False, power_iterations=self.power_iterations, scope=2)				
-			net = tf.layers.batch_normalization(inputs=net, training=is_train)
-			net = leakyReLU(net, self.alpha)
-			# Shape = (None, 256*7*7)
-
-			# Reshape
-			net = tf.reshape(tensor=net, shape=(-1, 7, 7, 256), name='reshape')
-			# Shape = (None, 7, 7, 256)
-
-			# Conv.
-			net = convolutional(inputs=net, output_channels=256, filter_size=2, stride=2, padding='SAME', conv_type='transpose', spectral=False, power_iterations=self.power_iterations, scope=1)
-			# net = attention_block(x=net, i=1)
-			net = tf.layers.batch_normalization(inputs=net, training=is_train)
-			net = leakyReLU(net, self.alpha)
-			# Shape = (None, 14, 14, 256)
-
-			# Conv.
-			net = convolutional(inputs=net, output_channels=128, filter_size=5, stride=1, padding='SAME', conv_type='convolutional', spectral=False, power_iterations=self.power_iterations, scope=2)
-			# net = attention_block(x=net, i=5)
-			net = tf.layers.batch_normalization(inputs=net, training=is_train)
-			net = leakyReLU(net, self.alpha)
-			# Shape = (None, 14, 14, 128)
-
-			# Conv.
-			net = convolutional(inputs=net, output_channels=128, filter_size=2, stride=2, padding='SAME', conv_type='transpose', spectral=False, power_iterations=self.power_iterations, scope=3)
-			# net = attention_block(x=net, i=6)
-			net = tf.layers.batch_normalization(inputs=net, training=is_train)
-			net = leakyReLU(net, self.alpha)
-			# Shape = (None, 28, 28, 128)
-
-			# Conv.
-			net = convolutional(inputs=net, output_channels=64, filter_size=5, stride=1, padding='SAME', conv_type='convolutional', spectral=False, power_iterations=self.power_iterations, scope=4)
-			# net = attention_block(x=net, i=7)
-			net = tf.layers.batch_normalization(inputs=net, training=is_train)
-			net = leakyReLU(net, self.alpha)
-			# Shape = (None, 28, 28, 64)
-
-			# Conv.
-			net = convolutional(inputs=net, output_channels=64, filter_size=2, stride=2, padding='SAME', conv_type='transpose', spectral=False, power_iterations=self.power_iterations, scope=5)
-			# net = attention_block(x=net, i=8)
-			net = tf.layers.batch_normalization(inputs=net, training=is_train)
-			net = leakyReLU(net, self.alpha)
-			# Shape = (None, 56, 56, 64)
-
-			# Conv.
-			net = convolutional(inputs=net, output_channels=32, filter_size=5, stride=1, padding='SAME', conv_type='convolutional', spectral=False, power_iterations=self.power_iterations, scope=6)
-			# net = attention_block(x=net, i=9)
-			net = tf.layers.batch_normalization(inputs=net, training=is_train)
-			net = leakyReLU(net, self.alpha)
-			# Shape = (None, 56, 56, 32)
-
-			# Conv.
-			net = convolutional(inputs=net, output_channels=32, filter_size=2, stride=2, padding='SAME', conv_type='transpose', spectral=False, power_iterations=self.power_iterations, scope=7)
-			# net = attention_block(x=net, i=10)
-			net = tf.layers.batch_normalization(inputs=net, training=is_train)
-			net = leakyReLU(net, self.alpha)
-			# Shape = (None, 112, 112, 32)
-
-			# Conv.
-			logits = convolutional(inputs=net, output_channels=self.image_channels, filter_size=2, stride=2, padding='SAME', conv_type='transpose', spectral=False, power_iterations=self.power_iterations, scope=8)
-			# logits = attention_block(x=logits, i=11)
-			# Shape = (None, 448, 448, 3)
-			output = tf.nn.sigmoid(x=logits, name='output')
+		output = generator(z_input=z_input, image_channels=self.image_channels, layers=4, spectral=True, activation=leakyReLU, reuse=reuse, is_train=is_train, normalization=batch_norm)
 		return output
-
 
 	def loss(self):
 		loss_dis, loss_gen = losses(self.loss_type, self.output_fake, self.output_real, self.logits_fake, self.logits_real, real_images=self.real_images, 
 										fake_images=self.fake_images, discriminator=self.discriminator, gp_coeff=self.gp_coeff)
 		return loss_dis, loss_gen
-
 
 	def optimization(self):
 		train_discriminator, train_generator = optimizer(self.beta_1, self.loss_gen, self.loss_dis, self.loss_type, self.learning_rate_input_g, self.learning_rate_input_d, beta_2=self.beta_2)
