@@ -20,14 +20,14 @@ def discriminator_resnet(images, layers, spectral, activation, reuse, normalizat
 			net = residual_block(inputs=net, filter_size=3, stride=1, padding='SAME', scope=layer, is_training=True, normalization=normalization, use_bias=True, 
 								 spectral=spectral, activation=activation)
 			if display: 
-				print('ResBlock Layer: channels %s filter_size=3, stride=1, padding=SAME, conv_type=transpose scope=%s Output Shape: %s' % (channels[layer], layer, net.shape))
+				print('ResBlock Layer: channels %4s filter_size=3, stride=1, padding=SAME, conv_type=convolutional scope=%s Output Shape: %s' % (channels[layer], layer, net.shape))
 
 			# Down.
 			net = convolutional(inputs=net, output_channels=channels[layer], filter_size=4, stride=2, padding='SAME', conv_type='convolutional', spectral=spectral, scope=layer)
 			if normalization is not None: net = normalization(inputs=net, training=True)
 			net = activation(net)
 			if display: 
-				print('Conv Layer: channels %s filter_size=4, stride=2, padding=SAME, conv_type=transpose scope=%s Output Shape: %s' % (channels[layer], layer, net.shape))
+				print('Conv Layer:     channels %4s filter_size=4, stride=2, padding=SAME, conv_type=convolutional scope=%s Output Shape: %s' % (channels[layer], layer, net.shape))
 
 		# Flatten.
 		net = tf.layers.flatten(inputs=net)
@@ -37,14 +37,14 @@ def discriminator_resnet(images, layers, spectral, activation, reuse, normalizat
 		if normalization is not None: net = normalization(inputs=net, training=True)
 		net = activation(net)
 		if display: 
-			print('Dense Layer: Dim=%s Output Shape: %s' % (channels[-1], net.shape))
+			print('Dense Layer:    dim.     %4s Output Shape: %s' % (channels[-1], net.shape))
 
 		# Dense
 		logits = dense(inputs=net, out_dim=1, spectral=spectral, scope=2)				
 		output = sigmoid(logits)
 		if display: 
-			print('Dense Layer: Dim=1 Output Shape: %s' % net.shape)
-
+			print('Dense Layer:    dim.       1 Output Shape: %s' % net.shape)
+			
 	print()
 	return output, logits
 
