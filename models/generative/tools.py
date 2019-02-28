@@ -4,7 +4,7 @@ from models.generative.utils import *
 
 
 # Method to generate random samples from a model, it also dumps a sprite image width them.
-def generate_samples(model, n_images, data_out_path):
+def generate_samples(model, n_images, data_out_path, name='geneated_samples.png'):
 	saver = tf.train.Saver()
 	with tf.Session() as session:
 		# Initializer and restoring model.
@@ -14,8 +14,10 @@ def generate_samples(model, n_images, data_out_path):
 		# Sample images.
 		gen_samples, sample_z = show_generated(session=session, z_input=model.z_input, z_dim=model.z_dim, output_fake=model.output_gen, n_images=n_images, show=False)
 
+	images_path = os.path.join(data_out_path, 'images')
+
 	# Dump images into sprite.
-	image_sprite = write_sprite_image(filename=os.path.join(data_out_path, 'geneated_samples.png'), data=gen_samples, metadata=False)
+	image_sprite = write_sprite_image(filename=os.path.join(images_path, name), data=gen_samples, metadata=False)
 
 	return gen_samples, sample_z, image_sprite
 
