@@ -23,14 +23,14 @@ def generator_resnet(z_input, image_channels, layers, spectral, activation, reus
 		net = normalization(inputs=net, training=is_train)
 		net = activation(net)
 		if display: 
-			print('Dense Layer: Dim=1024 Output Shape: %s' % net.shape)
+			print('Dense Layer:    dim.    1024 Output Shape: %s' % net.shape)
 
 		# Dense.
 		net = dense(inputs=net, out_dim=256*7*7, spectral=spectral, scope=2)				
 		net = normalization(inputs=net, training=is_train)
 		net = activation(net)
 		if display: 
-			print('Dense Layer: Dim=256*7*7 Output Shape: %s' % net.shape)
+			print('Dense Layer:    dim. 256*7*7 Output Shape: %s' % net.shape)
 
 		# Reshape
 		net = tf.reshape(tensor=net, shape=(-1, 7, 7, 256), name='reshape')
@@ -40,19 +40,19 @@ def generator_resnet(z_input, image_channels, layers, spectral, activation, reus
 			net = residual_block(inputs=net, filter_size=3, stride=1, padding='SAME', scope=layer, is_training=is_train, spectral=spectral,
 								 activation=activation, normalization=normalization)
 			if display:
-				print('ResBlock Layer: channels %s filter_size=3, stride=1, padding=SAME, conv_type=transpose scope=%s Output Shape: %s' % (reversed_channel[layer], layer, net.shape))
+				print('ResBlock Layer: channels %4s filter_size=3, stride=1, padding=SAME, conv_type=convolutional scope=%s Output Shape: %s' % (reversed_channel[layer], layer, net.shape))
 
 			# Up.
 			net = convolutional(inputs=net, output_channels=reversed_channel[layer], filter_size=2, stride=2, padding='SAME', conv_type='transpose', spectral=spectral, scope=layer)
 			net = normalization(inputs=net, training=is_train)
 			net = activation(net)
 			if display:
-				print('Conv Layer: channels %s ilter_size=2, stride=2, padding=SAME, conv_type=transpose scope=%s Output Shape: %s' % (reversed_channel[layer], layer, net.shape))
+				print('Conv Layer:     channels %4s ilter_size=2,  stride=2, padding=SAME, conv_type=transpose     scope=%s Output Shape: %s' % (reversed_channel[layer], layer, net.shape))
 
 		logits = convolutional(inputs=net, output_channels=image_channels, filter_size=3, stride=1, padding='SAME', conv_type='convolutional', spectral=spectral, scope=layer+1)
 		output = sigmoid(logits)
 		if display: 
-			print('Logits Layer: channels %s ilter_size=3, stride=1, padding=SAME, conv_type=convolutional scope=%s Output Shape: %s' % (image_channels, layer+1, net.shape))
+			print('Logits Layer:   channels %4s filter_size=3, stride=1, padding=SAME, conv_type=convolutional scope=%s Output Shape: %s' % (image_channels, layer+1, net.shape))
 
 	print()
 	return output
