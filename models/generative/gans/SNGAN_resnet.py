@@ -2,6 +2,7 @@ import tensorflow as tf
 import tensorflow_probability as tfp
 from models.generative.ops import *
 from models.generative.utils import *
+from models.generative.tools import *
 from models.generative.loss import *
 from models.generative.activations import *
 from models.generative.normalization import *
@@ -106,12 +107,17 @@ class SNGAN(GAN):
 						feed_dict = {self.z_input:z_batch, self.real_images:batch_images}
 						epoch_loss_dis, epoch_loss_gen = session.run([self.loss_dis, self.loss_gen], feed_dict=feed_dict)
 						losses.append((epoch_loss_dis, epoch_loss_gen))
-						print('Epochs %s/%s: Generator Loss: %s. Discriminator Loss: %s' % (epoch, epochs, np.round(epoch_loss_gen, 4), np.round(epoch_loss_dis, 4)))
+						print('Epochs %s/%s: Generator Loss: %10s  Discriminator Loss: %10s' % (epoch, epochs, np.round(epoch_loss_gen, 4), np.round(epoch_loss_dis, 4)))
 					if show_epochs is not None and run_epochs % show_epochs == 0:
 						gen_samples, sample_z = show_generated(session=session, z_input=self.z_input, z_dim=self.z_dim, output_fake=self.output_gen, n_images=n_images, dim=30)
 						if save_img:
 							img_storage[run_epochs//show_epochs] = gen_samples
 							latent_storage[run_epochs//show_epochs] = sample_z
+							
 					run_epochs += 1
 				data.training.reset()
+
+				gen_samples, _ = show_generated(session=session, z_input=self.z_input, z_dim=self.z_dim, output_fake=self.output_gen, n_images=25, show=False)
+				write_sprite_image(filename=os.path.join(data_out_path, 'images/gen_samples_epoch_%s.png' % epoch), data=gen_samples, metadata=False)
+
 		save_loss(losses, data_out_path, dim=30)
