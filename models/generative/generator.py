@@ -5,7 +5,7 @@ from models.generative.normalization import *
 
 display = True
 
-def generator_resnet(z_input, image_channels, layers, spectral, activation, reuse, is_train, normalization):
+def generator_resnet(z_input, image_channels, layers, spectral, activation, reuse, is_train, normalization, up='upscale'):
 	channels = [32, 64, 128, 256, 512, 1024]
 	reversed_channel = list(reversed(channels[:layers]))
 
@@ -43,11 +43,11 @@ def generator_resnet(z_input, image_channels, layers, spectral, activation, reus
 				print('ResBlock Layer: channels %4s filter_size=3, stride=1, padding=SAME, conv_type=convolutional scope=%s Output Shape: %s' % (reversed_channel[layer], layer, net.shape))
 
 			# Up.
-			net = convolutional(inputs=net, output_channels=reversed_channel[layer], filter_size=2, stride=2, padding='SAME', conv_type='transpose', spectral=spectral, scope=layer)
+			net = convolutional(inputs=net, output_channels=reversed_channel[layer], filter_size=2, stride=2, padding='SAME', conv_type=up, spectral=spectral, scope=layer)
 			net = normalization(inputs=net, training=is_train)
 			net = activation(net)
 			if display:
-				print('Conv Layer:     channels %4s ilter_size=2,  stride=2, padding=SAME, conv_type=transpose     scope=%s Output Shape: %s' % (reversed_channel[layer], layer, net.shape))
+				print('Conv Layer:     channels %4s ilter_size=2,  stride=2, padding=SAME, conv_type=%s scope=%s Output Shape: %s' % (reversed_channel[layer], up, layer, net.shape))
 
 		logits = convolutional(inputs=net, output_channels=image_channels, filter_size=3, stride=1, padding='SAME', conv_type='convolutional', spectral=spectral, scope=layer+1)
 		output = sigmoid(logits)

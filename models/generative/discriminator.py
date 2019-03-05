@@ -5,7 +5,7 @@ from models.generative.normalization import *
 
 display = True
 
-def discriminator_resnet(images, layers, spectral, activation, reuse, normalization=None):
+def discriminator_resnet(images, layers, spectral, activation, reuse, down='downscale', normalization=None):
 	net = images
 	channels = [32, 64, 128, 256, 512, 1024]
 
@@ -23,11 +23,11 @@ def discriminator_resnet(images, layers, spectral, activation, reuse, normalizat
 				print('ResBlock Layer: channels %4s filter_size=3, stride=1, padding=SAME, conv_type=convolutional scope=%s Output Shape: %s' % (channels[layer], layer, net.shape))
 
 			# Down.
-			net = convolutional(inputs=net, output_channels=channels[layer], filter_size=4, stride=2, padding='SAME', conv_type='convolutional', spectral=spectral, scope=layer)
+			net = convolutional(inputs=net, output_channels=channels[layer], filter_size=4, stride=2, padding='SAME', conv_type=down, spectral=spectral, scope=layer)
 			if normalization is not None: net = normalization(inputs=net, training=True)
 			net = activation(net)
 			if display: 
-				print('Conv Layer:     channels %4s filter_size=4, stride=2, padding=SAME, conv_type=convolutional scope=%s Output Shape: %s' % (channels[layer], layer, net.shape))
+				print('Conv Layer:     channels %4s filter_size=4, stride=2, padding=SAME, conv_type=%s scope=%s Output Shape: %s' % (channels[layer], down, layer, net.shape))
 
 		# Flatten.
 		net = tf.layers.flatten(inputs=net)
