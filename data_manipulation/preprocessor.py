@@ -5,7 +5,7 @@ import skimage.io
 import matplotlib.pyplot as plt
 
 class Preprocessor:
-    def __init__(self,  patch_h, patch_w, n_channels, dataset, marker,  labels, project_path=os.getcwd()):
+    def __init__(self,  patch_h, patch_w, n_channels, dataset, marker,  labels, overlap=False, save_img=False, project_path=os.getcwd()):
 
         # patches size
         self.patch_h = patch_h
@@ -39,6 +39,8 @@ class Preprocessor:
         self.image_filenames = utils.filter_filenames(filenames, extension='.jpg')
 
         self.patches_per_file = dict()
+        self.save_img = save_img
+        self.overlap = overlap
 
     # Returns lists of images for train/test given the provided shares.
     def split_data_into_sets(self, shares):
@@ -100,10 +102,12 @@ class Preprocessor:
 
         for i_x in range(0, num_x-1):
             for i_y in range(0, num_y-1):
-                y = i_y * int(self.patch_h//2)
-                x = i_x * int(self.patch_w//2)
-                # y = i_y * self.patch_h
-                # x = i_x * self.patch_w
+                if self.overlap:
+                    y = i_y * int(self.patch_h//2)
+                    x = i_x * int(self.patch_w//2)
+                else:
+                    y = i_y * self.patch_h
+                    x = i_x * self.patch_w
                 pos = (y, x)
                 # Gets patch, flipped horizontally but not rotated or normalized.
                 patch = utils.get_augmented_patch(self.dataset_path, filename, (None,) + pos + (0, 0), self.patch_h, self.patch_w, norm=False)
@@ -225,4 +229,4 @@ class Preprocessor:
             print('"augmentations" file finished')
 
         # Creates Hdf5 database and save patches images, saving the patches if off by default.
-        self.save_images(augmentations, sets_with_labels, save=False)
+        self.save_images(augmentations, sets_with_labels, save=self.save_img)
