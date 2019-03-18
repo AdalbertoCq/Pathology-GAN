@@ -1,9 +1,6 @@
 import tensorflow as tf
 # from models.generative.utils import power_iteration_method
 
-def leakyReLU(x, alpha):
-    return tf.maximum(alpha*x, x)
-
 # This step need to be heavily revised.
 def attention_block(x, i, spectral=True, power_iterations=1):
 
@@ -263,22 +260,30 @@ def dense(inputs, out_dim, scope, use_bias=True, spectral=False, power_iteration
     return output
 
 
-def residual_block(inputs, filter_size, stride, padding, scope, is_training=True, normalization=None, use_bias=True, spectral=False, activation=None, power_iterations=1):
+def residual_block(inputs, filter_size, stride, padding, scope, c_input=None, is_training=True, normalization=None, use_bias=True, spectral=False, activation=None, power_iterations=1):
     channels = inputs.shape.as_list()[-1]
     with tf.variable_scope('resblock_%s' % scope):
         with tf.variable_scope('part_1'):
             # Convolutional
             net = convolutional(inputs, channels, filter_size, stride, padding, 'convolutional', scope=1, spectral=spectral, power_iterations=power_iterations)
-            # Batch Normalization
-            if normalization is not None: net = normalization(inputs=net, training=is_training)
+            # Normalization
+            if normalization is not None: 
+                if c_input is not None:
+                    net = normalization(inputs=net, training=is_training, c=c_input, spectral=spectral)
+                else:
+                    net = normalization(inputs=net, training=is_training)
             # Activation
             if activation is not None: net = activation(net)
             
         with tf.variable_scope('part_2'):
             # Convolutional
             net = convolutional(net, channels, filter_size, stride, padding, 'convolutional', scope=1, spectral=spectral, power_iterations=power_iterations)
-            # Batch Normalization
-            if normalization is not None: net = normalization(inputs=net, training=is_training)
+            # Normalization
+            if normalization is not None: 
+                if c_input is not None:
+                    net = normalization(inputs=net, training=is_training, c=c_input, spectral=spectral)
+                else:
+                    net = normalization(inputs=net, training=is_training)
             # Activation
             if activation is not None: net = activation(net)
             
