@@ -2,6 +2,7 @@ import tensorflow as tf
 import tensorflow_probability as tfp
 from models.generative.ops import *
 from models.generative.utils import *
+from models.generative.tools import *
 from models.generative.loss import *
 from models.generative.activations import *
 from models.generative.normalization import *
@@ -34,13 +35,14 @@ class SNGAN(GAN):
 		self.beta_2 = beta_2
 		self.spec_ops_name = 'SPECTRAL_NORM_UPDATE_OPS'
 		super().__init__(data=data, z_dim=z_dim, use_bn=use_bn, alpha=alpha, beta_1=beta_1, learning_rate_g=learning_rate_g, learning_rate_d=learning_rate_d, n_critic=n_critic, loss_type=loss_type, model_name=model_name)
+		# self.sing_jacob = check_jacobian_singular()
 
 	def discriminator(self, images, reuse):
-		output, logits = discriminator(images=images, layers=5, spectral=True, activation=leakyReLU, reuse=reuse)
+		output, logits = discriminator_resnet(images=images, layers=5, spectral=True, activation=leakyReLU, reuse=reuse)
 		return output, logits
 
 	def generator(self, z_input, reuse, is_train):
-		output = generator(z_input=z_input, image_channels=self.image_channels, layers=4, spectral=True, activation=leakyReLU, reuse=reuse, is_train=is_train, normalization=batch_norm)
+		output = generator_resnet(z_input=z_input, image_channels=self.image_channels, layers=5, spectral=True, activation=leakyReLU, reuse=reuse, is_train=is_train, normalization=batch_norm)
 		return output
 
 	def loss(self):
@@ -52,9 +54,15 @@ class SNGAN(GAN):
 		train_discriminator, train_generator = optimizer(self.beta_1, self.loss_gen, self.loss_dis, self.loss_type, self.learning_rate_input_g, self.learning_rate_input_d, beta_2=self.beta_2)
 		return train_discriminator, train_generator
 
+	def check_jacobian_singular(self):
+		gen_jacob = tf.gradients(ys=self.fake_images, xs=self.z_input)
+		s, _, _ = tf.svd(gen_jacob)
+		return s 
+
+
 	def train(self, epochs, data_out_path, data, restore, show_epochs=100, print_epochs=10, n_images=10, save_img=False):
 		run_epochs = 0    
-		losses = list()
+		losses = list() 
 		saver = tf.train.Saver()
 
 		img_storage, latent_storage, checkpoints = setup_output(show_epochs, epochs, data, n_images, self.z_dim, data_out_path, self.model_name, restore, save_img)
@@ -99,12 +107,17 @@ class SNGAN(GAN):
 						feed_dict = {self.z_input:z_batch, self.real_images:batch_images}
 						epoch_loss_dis, epoch_loss_gen = session.run([self.loss_dis, self.loss_gen], feed_dict=feed_dict)
 						losses.append((epoch_loss_dis, epoch_loss_gen))
-						print('Epochs %s/%s: Generator Loss: %s. Discriminator Loss: %s' % (epoch, epochs, np.round(epoch_loss_gen, 4), np.round(epoch_loss_dis, 4)))
+						print('Epochs %s/%s: Generator Loss: %10s  Discriminator Loss: %10s' % (epoch, epochs, np.round(epoch_loss_gen, 4), np.round(epoch_loss_dis, 4)))
 					if show_epochs is not None and run_epochs % show_epochs == 0:
 						gen_samples, sample_z = show_generated(session=session, z_input=self.z_input, z_dim=self.z_dim, output_fake=self.output_gen, n_images=n_images, dim=30)
 						if save_img:
 							img_storage[run_epochs//show_epochs] = gen_samples
 							latent_storage[run_epochs//show_epochs] = sample_z
+							
 					run_epochs += 1
 				data.training.reset()
+
+				gen_samples, _ = show_generated(session=session, z_input=self.z_input, z_dim=self.z_dim, output_fake=self.output_gen, n_images=25, show=False)
+				write_sprite_image(filename=os.path.join(data_out_path, 'images/gen_samples_epoch_%s.png' % epoch), data=gen_samples, metadata=False)
+
 		save_loss(losses, data_out_path, dim=30)
