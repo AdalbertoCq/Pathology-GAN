@@ -122,7 +122,7 @@ def write_label_data(label_data, file_name):
         f.write(label_data.tobytes())
 
 
-def write_sprite_image(data, filename=None, metadata=True):
+def write_sprite_image(data, filename=None, metadata=True, row_n=None):
 
     if metadata:
         with open(filename.replace('gen_sprite.png', 'metadata.tsv'),'w') as f:
@@ -141,10 +141,9 @@ def write_sprite_image(data, filename=None, metadata=True):
     #data = 1 - data
 
     n = int(np.ceil(np.sqrt(data.shape[0])))
-    padding = ((0, n ** 2 - data.shape[0]), (0, 0),
-            (0, 0)) + ((0, 0),) * (data.ndim - 3)
-    data = np.pad(data, padding, mode='constant',
-            constant_values=0)
+    padding = ((0, n ** 2 - data.shape[0]), (0, 0), (0, 0)) + ((0, 0),) * (data.ndim - 3)
+    data = np.pad(data, padding, mode='constant', constant_values=0)
+    
     # Tile the individual thumbnails into an image.
     data = data.reshape((n, n) + data.shape[1:]).transpose((0, 2, 1, 3) + tuple(range(4, data.ndim + 1)))
     data = data.reshape((n * data.shape[1], n * data.shape[3]) + data.shape[4:])
