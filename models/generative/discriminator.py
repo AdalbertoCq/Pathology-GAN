@@ -5,15 +5,18 @@ from models.generative.normalization import *
 
 display = True
 
-def discriminator_resnet(images, layers, spectral, activation, reuse, down='downscale', normalization=None):
+def discriminator_resnet(images, layers, spectral, activation, reuse, normalization=None, attention=None, down='downscale'):
 	net = images
 	channels = [32, 64, 128, 256, 512, 1024]
 
 	if display:
-		print('Discriminator Information.')
+		print('DISCRIMINATOR INFORMATION:')
 		print('Channels: ', channels[:layers])
 		print('Normalization: ', normalization)
 		print('Activation: ', activation)
+		print('Attention:  ', attention)
+		print()
+
 	with tf.variable_scope('discriminator', reuse=reuse):
 		for layer in range(layers):
 			# ResBlock.
@@ -21,6 +24,11 @@ def discriminator_resnet(images, layers, spectral, activation, reuse, down='down
 								 spectral=spectral, activation=activation)
 			if display: 
 				print('ResBlock Layer: channels %4s filter_size=3, stride=1, padding=SAME, conv_type=convolutional scope=%s Output Shape: %s' % (channels[layer], layer, net.shape))
+
+			# Attention layer. 
+			if attention is not None and net.shape.as_list()[1]==attention:
+				net = attention_block(net, spectral=True, scope=layers)
+				print('Att. Layer    : channels %4s' % channels[layer])
 
 			# Down.
 			net = convolutional(inputs=net, output_channels=channels[layer], filter_size=4, stride=2, padding='SAME', conv_type=down, spectral=spectral, scope=layer)

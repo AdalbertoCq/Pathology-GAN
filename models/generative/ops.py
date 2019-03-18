@@ -2,10 +2,10 @@ import tensorflow as tf
 # from models.generative.utils import power_iteration_method
 
 # This step need to be heavily revised.
-def attention_block(x, i, spectral=True, power_iterations=1):
+def attention_block(x, scope, spectral=True, power_iterations=1):
 
     batch_size, height, width, channels = x.get_shape().as_list()
-    with tf.variable_scope('attention_block_%s' % i):
+    with tf.variable_scope('attention_block_%s' % scope):
 
         # Global value for all pixels, measures how important is the context for each of them.
         gamma = tf.get_variable('gamma', shape=(1),initializer=tf.constant_initializer(0.0))
@@ -24,10 +24,12 @@ def attention_block(x, i, spectral=True, power_iterations=1):
 
         beta = tf.nn.softmax(s)
 
-        print(beta)
-        print(x.shape)
-        print(beta.shape)
-        print(h_flat.shape)
+        display = True
+        if display:
+            print('Beta', beta)
+            print('X', x.shape)
+            print('Beta', beta.shape)
+            print('H Flat', h_flat.shape)
         o = tf.matmul(beta, h_flat)
         o = tf.reshape(o, shape=tf.stack([tf.shape(x)[0], height, width, channels]))
         y = gamma*o + x
