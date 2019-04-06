@@ -1,8 +1,6 @@
 import tensorflow as tf
-# from models.generative.utils import power_iteration_method
 
-# This step need to be heavily revised.
-def attention_block(x, scope, spectral=True, power_iterations=1):
+def attention_block(x, scope, spectral=True, power_iterations=1, display=True):
 
     batch_size, height, width, channels = x.get_shape().as_list()
     with tf.variable_scope('attention_block_%s' % scope):
@@ -11,9 +9,12 @@ def attention_block(x, scope, spectral=True, power_iterations=1):
         gamma = tf.get_variable('gamma', shape=(1),initializer=tf.constant_initializer(0.0))
         f_g_channels = channels//8
 
-        f = convolutional(inputs=x, output_channels=f_g_channels, filter_size=1, stride=1, padding='SAME', conv_type='convolutional', spectral=True, power_iterations=power_iterations, scope=1)
-        g = convolutional(inputs=x, output_channels=f_g_channels, filter_size=1, stride=1, padding='SAME', conv_type='convolutional', spectral=True, power_iterations=power_iterations, scope=2)
-        h = convolutional(inputs=x, output_channels=channels    , filter_size=1, stride=1, padding='SAME', conv_type='convolutional', spectral=True, power_iterations=power_iterations, scope=3)
+        f = convolutional(inputs=x, output_channels=f_g_channels, filter_size=1, stride=1, padding='SAME', conv_type='convolutional', spectral=True, 
+                          power_iterations=power_iterations, scope=1, display=False)
+        g = convolutional(inputs=x, output_channels=f_g_channels, filter_size=1, stride=1, padding='SAME', conv_type='convolutional', spectral=True, 
+                          power_iterations=power_iterations, scope=2, display=False)
+        h = convolutional(inputs=x, output_channels=channels    , filter_size=1, stride=1, padding='SAME', conv_type='convolutional', spectral=True, 
+                          power_iterations=power_iterations, scope=3, display=False)
 
         # Flatten f, g, and h per channel.
         f_flat = tf.reshape(f, shape=tf.stack([tf.shape(x)[0], height*width, channels//8]))
@@ -24,17 +25,16 @@ def attention_block(x, scope, spectral=True, power_iterations=1):
 
         beta = tf.nn.softmax(s)
 
-        display = True
-        if display:
-            print('Beta', beta)
-            print('X', x.shape)
-            print('Beta', beta.shape)
-            print('H Flat', h_flat.shape)
         o = tf.matmul(beta, h_flat)
         o = tf.reshape(o, shape=tf.stack([tf.shape(x)[0], height, width, channels]))
         y = gamma*o + x
 
+    if display:
+        print('Att. Layer:     Scope=%15s Channels %5s Output Shape: %s' % 
+            (str(scope)[:14], channels, y.shape))
+
     return y
+
 
 def spectral_normalization(filter, power_iterations):
     # Vector is preserved after each SGD iteration, good performance with power_iter=1 and presenving. 
@@ -94,31 +94,15 @@ def spectral_normalization(filter, power_iterations):
     return filter_normalized
 
 
-def convolutional(inputs, output_channels, filter_size, stride, padding, conv_type, scope, data_format='NHWC', output_shape=None, spectral=False, power_iterations=1):
+def convolutional(inputs, output_channels, filter_size, stride, padding, conv_type, scope, init='xavier', data_format='NHWC', output_shape=None, spectral=False, power_iterations=1, display=True):
     with tf.variable_scope('conv_layer_%s' % scope):
-        '''
-        Kernel and bias initilization, adding this whole documentation to make sure transition for tf.contrib.layer.conv2d to tf.nn.conv2d has the same setup as 
-        previous models:
-            tf.get_variable(
-                name,
-                shape=None, 
-                dtype=None,
-                initializer=None,
-                regularizer=None,
-                trainable=None,
-                collections=None,
-                caching_device=None,
-                partitioner=None,
-                validate_shape=True,
-                use_resource=None,
-                custom_getter=None,
-                constraint=None,
-                synchronization=tf.VariableSynchronization.AUTO,
-                aggregation=tf.VariableAggregation.NONE
-            )
-        '''
-        # weight_init = tf.initializers.random_normal(stddev=0.02)
-        weight_init = tf.contrib.layers.xavier_initializer_conv2d()
+        # Weight Initlializer.
+        if init=='normal':
+            weight_init = tf.initializers.random_normal(stddev=0.02)
+        elif init=='orthogonal':
+            weight_init = tf.initializers.orthogonal()
+        else:
+            weight_init = tf.contrib.layers.xavier_initializer_conv2d()
 
         # Shapes.
         current_shape = inputs.get_shape()
@@ -126,93 +110,11 @@ def convolutional(inputs, output_channels, filter_size, stride, padding, conv_ty
         if 'transpose'in conv_type or 'upscale' in conv_type: filter_shape = (filter_size, filter_size, output_channels, input_channels)   
         else: filter_shape = (filter_size, filter_size, input_channels, output_channels)    
 
+        # Weight and Bias Initialization.
         bias = tf.get_variable(name='bias', shape=[output_channels], initializer=tf.constant_initializer(0.0), trainable=True, dtype=tf.float32) 
-        filter = tf.get_variable(name='filter', shape=filter_shape, initializer=weight_init, trainable=True, dtype=tf.float32)    
+        filter = tf.get_variable(name='filter_conv', shape=filter_shape, initializer=weight_init, trainable=True, dtype=tf.float32)    
         
-        '''
-        Comparison betweeen previous config to new: tf.contrib.layer.conv2d to tf.nn.conv2d has the same setup.
-            USAGE: weight_init = tf.contrib.layers.xavier_initializer_conv2d()
-                    tf.nn.conv2d_transpose(
-                            value=inputs,
-                            filter=filter,
-                            output_shape=tf.stack([tf.shape(inputs)[0], current_shape[1]*stride, current_shape[2]*stride, output_channels]),
-                            strides=[1, 2, 2, 1],
-                            padding='SAME',
-                            data_format='NHWC',
-                            name=None
-                    )
-
-                    kernel_shape = self.kernel_size + (self.filters, input_dim)
-
-                    self.add_weight(
-                            name='kernel',
-                            shape=kernel_shape,
-                            initializer=self.kernel_initializer,
-                            regularizer=self.kernel_regularizer,
-                            constraint=self.kernel_constraint,
-                            trainable=True,
-                            dtype=self.dtype,
-                            partitioner=None,
-                            use_resource=None,
-                            synchronization=tf_variables.VariableSynchronization.AUTO,
-                            aggregation=tf_variables.VariableAggregation.NONE
-                    )
-                            
-                
-                    nn.conv2d_transpose(
-                            inputs,
-                            self.kernel,
-                            output_shape_tensor=(batch_size, out_height, out_width, self.filters),
-                            stride=(1, stride_h, stride_w, 1),
-                            padding=self.padding.upper(),
-                            data_format=conv_utils.convert_data_format(self.data_format, ndim=4)
-                    )
-                    tf.layers.conv2d_transpose(
-                            inputs=net,
-                            filters=256,
-                            kernel_size=(2,2),
-                            strides=(2, 2),
-                            padding='same',
-                            data_format='channels_last',                                DEFAULT.
-                            activation=None,                                            DEFAULT.
-                            use_bias=True,                                              DEFAULT.
-                            kernel_initializer=tf.contrib.layers.xavier_initializer(), 
-                            bias_initializer=tf.zeros_initializer(),                    DEFAULT.
-                            kernel_regularizer=None,                                    DEFAULT.
-                            bias_regularizer=None,                                      DEFAULT.    
-                            activity_regularizer=None,                                  DEFAULT.
-                            kernel_constraint=None,                                     DEFAULT.
-                            bias_constraint=None,                                       DEFAULT.
-                            trainable=True,                                             DEFAULT.
-                            name=None,                                                  DEFAULT.
-                            reuse=None                                                  DEFAULT.
-                    )
-
-            USAGE:  nn.conv2d(input=inputs, filter=filter, strides=strides, padding='SAME', data_format='NHWC')
-                    layers.conv2d(inputs=net, filters=128, kernel_size=(5,5), strides=(2, 2), padding='same', kernel_initializer=tf.contrib.layers.xavier_initializer())
-            DEFAULTS: tf.layers.conv2d(
-                            inputs,
-                            filters,
-                            kernel_size,
-                            strides=(1, 1),
-                            padding='valid',
-                            data_format='channels_last',
-                            dilation_rate=(1, 1),
-                            activation=None,
-                            use_bias=True,
-                            kernel_initializer=None,
-                            bias_initializer=tf.zeros_initializer(),
-                            kernel_regularizer=None,
-                            bias_regularizer=None,
-                            activity_regularizer=None,
-                            kernel_constraint=None,
-                            bias_constraint=None,
-                            trainable=True,
-                            name=None,
-                            reuse=None
-            )
-        '''
-        # Type of convolutional operation.
+       # Type of convolutional operation.
         if conv_type == 'upscale':
             output_shape = [tf.shape(inputs)[0], current_shape[1]*2, current_shape[2]*2, output_channels]
             # Weight filter initializer.
@@ -242,14 +144,24 @@ def convolutional(inputs, output_channels, filter_size, stride, padding, conv_ty
             output = tf.nn.conv2d(input=inputs, filter=filter, strides=strides, padding=padding, data_format=data_format)
         
         output = tf.nn.bias_add(output, bias, data_format=data_format)
+
+    if display:
+        print('Conv Layer:     Scope=%15s Channels %5s Filter_size=%2s  Stride=%2s Padding=%6s Conv_type=%15s Output Shape: %s' % 
+            (str(scope)[:14], output_channels, filter_size, stride, padding, conv_type, output.shape))
     return output
 
 
-def dense(inputs, out_dim, scope, use_bias=True, spectral=False, power_iterations=1):
+def dense(inputs, out_dim, scope, use_bias=True, spectral=False, power_iterations=1, init='xavier', display=True):
+    if init=='normal':
+        weight_init = tf.initializers.random_normal(stddev=0.02)
+    elif init=='orthogonal':
+        weight_init = tf.initializers.orthogonal()
+    else:
+        weight_init = tf.contrib.layers.xavier_initializer()
+
     with tf.variable_scope('dense_layer_%s' % scope):
-        
         in_dim = inputs.get_shape()[-1]
-        weights = tf.get_variable('kernel', shape=[in_dim, out_dim], dtype=tf.float32, trainable=True)
+        weights = tf.get_variable('filter_dense', shape=[in_dim, out_dim], dtype=tf.float32, trainable=True, initializer=weight_init)
         
         if spectral:
             output = tf.matmul(inputs, spectral_normalization(weights, power_iterations))
@@ -259,37 +171,42 @@ def dense(inputs, out_dim, scope, use_bias=True, spectral=False, power_iteration
         if use_bias : 
             bias = tf.get_variable('bias', [out_dim], initializer=tf.constant_initializer(0.0), trainable=True, dtype=tf.float32)
         output = tf.add(output, bias)
+
+    if display:
+        print('Dens Layer:     Scope=%15s Channels %5s Output Shape: %s' % 
+            (str(scope)[:14], out_dim, output.shape))
+
     return output
 
 
-def residual_block(inputs, filter_size, stride, padding, scope, c_input=None, is_training=True, normalization=None, use_bias=True, spectral=False, activation=None, power_iterations=1):
+def residual_block(inputs, filter_size, stride, padding, scope, cond_label=None, is_training=True, normalization=None, use_bias=True, spectral=False, activation=None, 
+                    power_iterations=1, display=True):
     channels = inputs.shape.as_list()[-1]
     with tf.variable_scope('resblock_%s' % scope):
         with tf.variable_scope('part_1'):
             # Convolutional
-            net = convolutional(inputs, channels, filter_size, stride, padding, 'convolutional', scope=1, spectral=spectral, power_iterations=power_iterations)
+            net = convolutional(inputs, channels, filter_size, stride, padding, 'convolutional', scope=1, spectral=spectral, power_iterations=power_iterations, display=False)
             # Normalization
             if normalization is not None: 
-                if c_input is not None:
-                    net = normalization(inputs=net, training=is_training, c=c_input, spectral=spectral)
-                else:
-                    net = normalization(inputs=net, training=is_training)
+                net = normalization(inputs=net, training=is_training, c=cond_label, spectral=spectral, scope=1)
             # Activation
             if activation is not None: net = activation(net)
             
         with tf.variable_scope('part_2'):
             # Convolutional
-            net = convolutional(net, channels, filter_size, stride, padding, 'convolutional', scope=1, spectral=spectral, power_iterations=power_iterations)
+            net = convolutional(net, channels, filter_size, stride, padding, 'convolutional', scope=1, spectral=spectral, power_iterations=power_iterations, display=False)
             # Normalization
             if normalization is not None: 
-                if c_input is not None:
-                    net = normalization(inputs=net, training=is_training, c=c_input, spectral=spectral)
-                else:
-                    net = normalization(inputs=net, training=is_training)
+                net = normalization(inputs=net, training=is_training, c=cond_label, spectral=spectral, scope=2)
             # Activation
             if activation is not None: net = activation(net)
-            
-        return inputs + net
+
+        output = inputs + net
+
+        if display:
+            print('ResN Layer:     Scope=%15s Channels %5s Filter_size=%2s  Stride=%2s Padding=%6s Conv_type=%15s Output Shape: %s' % 
+            (str(scope)[:14], channels, filter_size, stride, padding, 'convolutional', output.shape))
+        return output
 
 
             
