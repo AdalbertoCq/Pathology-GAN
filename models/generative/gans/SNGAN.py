@@ -1,5 +1,6 @@
 import tensorflow as tf
 import tensorflow_probability as tfp
+from data_manipulation.utils import *
 from models.generative.ops import *
 from models.generative.utils import *
 from models.generative.tools import *
@@ -33,9 +34,7 @@ class SNGAN(GAN):
 		self.power_iterations = power_iterations
 		self.gp_coeff = gp_coeff
 		self.beta_2 = beta_2
-		self.spec_ops_name = 'SPECTRAL_NORM_UPDATE_OPS'
 		super().__init__(data=data, z_dim=z_dim, use_bn=use_bn, alpha=alpha, beta_1=beta_1, learning_rate_g=learning_rate_g, learning_rate_d=learning_rate_d, n_critic=n_critic, loss_type=loss_type, model_name=model_name)
-		# self.sing_jacob = check_jacobian_singular()
 
 	def discriminator(self, images, reuse):
 		output, logits = discriminator_resnet(images=images, layers=5, spectral=True, activation=leakyReLU, reuse=reuse)
@@ -54,25 +53,16 @@ class SNGAN(GAN):
 		train_discriminator, train_generator = optimizer(self.beta_1, self.loss_gen, self.loss_dis, self.loss_type, self.learning_rate_input_g, self.learning_rate_input_d, beta_2=self.beta_2)
 		return train_discriminator, train_generator
 
-	def check_jacobian_singular(self):
-		gen_jacob = tf.gradients(ys=self.fake_images, xs=self.z_input)
-		s, _, _ = tf.svd(gen_jacob)
-		return s 
-
-
-	def train(self, epochs, data_out_path, data, restore, show_epochs=100, print_epochs=10, n_images=10, save_img=False):
+	def train(self, epochs, data_out_path, data, restore, show_epochs=100, print_epochs=10, n_images=10, save_img=False, tracking=False):
 		run_epochs = 0    
 		losses = list() 
+		f_sing = list()
 		saver = tf.train.Saver()
 
-		img_storage, latent_storage, checkpoints = setup_output(show_epochs, epochs, data, n_images, self.z_dim, data_out_path, self.model_name, restore, save_img)
+		img_storage, latent_storage, checkpoints, csvs = setup_output(show_epochs, epochs, data, n_images, self.z_dim, data_out_path, self.model_name, restore, save_img)
+		losses = ['Generator Loss', 'Discriminator Loss']
+		setup_csvs(csvs=csvs, model=self, losses)
 		report_parameters(self, epochs, restore, data_out_path)
-
-		# Used if we want to update by ops name.
-		# sn_update_ops = tf.get_collection(self.spec_ops_name)
-
-		# Track normalized kernels.
-		# summary_op = tf.summary.merge_all()
 
 		with tf.Session() as session:
 			session.run(tf.global_variables_initializer())
@@ -80,22 +70,17 @@ class SNGAN(GAN):
 				check = get_checkpoint(data_out_path)
 				saver.restore(session, check)
 				print('Restored model: %s' % check)
+
 			writer = tf.summary.FileWriter(os.path.join(data_out_path, 'tensorboard'), graph_def=session.graph_def)	
 			for epoch in range(1, epochs+1):
 				saver.save(sess=session, save_path=checkpoints)
 				for batch_images, batch_labels in data.training:
-
-					# Normalize weights using the operation collection instead of the control dependencies.
-					# for sn_up in sn_update_ops:
-					# 	value = session.run(sn_up)
 
 					# Inputs.
 					z_batch = np.random.uniform(low=-1., high=1., size=(self.batch_size, self.z_dim))               
 					feed_dict = {self.z_input:z_batch, self.real_images:batch_images, self.learning_rate_input_g: self.learning_rate_g, self.learning_rate_input_d: self.learning_rate_d}
 
 					# Update critic.
-					# summary, _ = session.run([summary_op, self.train_discriminator], feed_dict=feed_dict)
-					# summary = writer.add_summary(summary, run_epochs)
 					session.run([self.train_discriminator], feed_dict=feed_dict)
 					
 					# Update generator after n_critic updates from discriminator.
@@ -106,8 +91,13 @@ class SNGAN(GAN):
 					if run_epochs % print_epochs == 0:
 						feed_dict = {self.z_input:z_batch, self.real_images:batch_images}
 						epoch_loss_dis, epoch_loss_gen = session.run([self.loss_dis, self.loss_gen], feed_dict=feed_dict)
-						losses.append((epoch_loss_dis, epoch_loss_gen))
-						print('Epochs %s/%s: Generator Loss: %10s  Discriminator Loss: %10s' % (epoch, epochs, np.round(epoch_loss_gen, 4), np.round(epoch_loss_dis, 4)))
+						update_csv(model=self, file=csvs[0], variables=[epoch_loss_gen, epoch_loss_dis], epoch=epoch, iteration=run_epochs, losses=losses)
+						if tracking:
+							f_sing_gen, f_sing_dis = filter_singular_values(model=self, n_sing=self.n_sing)
+							jac_sign_values = jacobian_singular_values(session=session, model=self, z_batch=z_batch)
+							update_csv(model=self, file=csvs[1], variables=[f_sing_gen, f_sing_dis], epoch=epoch, iteration=run_epochs)
+							update_csv(model=self, file=csvs[2], variables=jac_sign_values, epoch=epoch, iteration=run_epochs)
+						
 					if show_epochs is not None and run_epochs % show_epochs == 0:
 						gen_samples, sample_z = show_generated(session=session, z_input=self.z_input, z_dim=self.z_dim, output_fake=self.output_gen, n_images=n_images, dim=30)
 						if save_img:
@@ -119,5 +109,3 @@ class SNGAN(GAN):
 
 				gen_samples, _ = show_generated(session=session, z_input=self.z_input, z_dim=self.z_dim, output_fake=self.output_gen, n_images=25, show=False)
 				write_sprite_image(filename=os.path.join(data_out_path, 'images/gen_samples_epoch_%s.png' % epoch), data=gen_samples, metadata=False)
-
-		save_loss(losses, data_out_path, dim=30)
