@@ -3,6 +3,7 @@ import tensorflow_probability as tfp
 from models.generative.ops import *
 from models.generative.utils import *
 from models.generative.loss import *
+from models.generative.evaluation import *
 from models.generative.optimizer import *
 
 
@@ -44,6 +45,8 @@ class GAN:
 		self.learning_rate_d = learning_rate_d
 
 		self.build_model()
+
+		self.gen_filters, self.dis_filters = gather_filters()
 
 
 	def discriminator(self, images, reuse):
@@ -132,6 +135,7 @@ class GAN:
 	def train(self, epochs, data_out_path, data, restore, show_epochs=100, print_epochs=10, n_images=10, save_img=False):
 		run_epochs = 0    
 		losses = list()
+		f_sing = list()
 		saver = tf.train.Saver()
 
 		img_storage, latent_storage, checkpoints = setup_output(show_epochs, epochs, data, n_images, self.z_dim, data_out_path, self.model_name, restore, save_img)
@@ -160,8 +164,11 @@ class GAN:
 					if run_epochs % print_epochs == 0:
 						feed_dict = {self.z_input:z_batch, self.real_images:batch_images}
 						epoch_loss_dis, epoch_loss_gen = session.run([self.loss_dis, self.loss_gen], feed_dict=feed_dict)
+						f_sing_gen, f_sing_dis = filter_singular_values(self)
 						losses.append((epoch_loss_dis, epoch_loss_gen))
+						f_sing.append((f_sing_gen, f_sing_dis))
 						print('Epochs %s/%s: Generator Loss: %s. Discriminator Loss: %s' % (epoch, epochs, np.round(epoch_loss_gen, 4), np.round(epoch_loss_dis, 4)))
+						
 					if show_epochs is not None and run_epochs % show_epochs == 0:
 						gen_samples, sample_z = show_generated(session=session, z_input=self.z_input, z_dim=self.z_dim, output_fake=self.output_gen, n_images=n_images)
 						if save_img:
