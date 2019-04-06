@@ -1,4 +1,3 @@
-from data_manipulation.utils import write_sprite_image
 from tensorflow.contrib.tensorboard.plugins import projector
 from models.generative.utils import *
 
