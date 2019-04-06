@@ -6,6 +6,8 @@ import os
 import shutil
 import h5py
 import tensorflow as tf
+import csv
+import json
 
 
 # Simple function to plot number images.
@@ -57,7 +59,67 @@ def get_checkpoint(data_out_path, which=0):
     exit()
 
 
-# Method to setup 
+def update_csv(model, file, variables, epoch, iteration, losses):
+    with open(file, 'a') as csv_file:
+        if 'loss' in file: 
+            header = ['Epoch', 'Iteration']
+            header.extend(losses)
+            writer = csv.DictWriter(csv_file, fieldnames = header)
+            line = dict()
+            line['Epoch'] = epoch
+            line['Iteration'] = iteration
+            for ind, val in enumerate(losses):
+                line[val] = variables[ind]
+        elif 'filter' in file:
+            header = ['Epoch', 'Iteration']
+            header.extend([str(v.name.split(':')[0].replace('/', '_')) for v in model.gen_filters])
+            header.extend([str(v.name.split(':')[0].replace('/', '_')) for v in model.dis_filters])
+            writer = csv.DictWriter(csv_file, fieldnames = header)
+            line = dict()
+            line['Epoch'] = epoch
+            line['Iteration'] = iteration
+            for var in variables[0]:
+                line[var] = variables[0][var]
+            for var in variables[1]:
+                line[var] = variables[1][var]
+        elif 'jacobian' in file:
+            writer = csv.writer(csv_file)
+            line = [epoch, iteration]
+            line.extend(variables)
+        elif 'hessian' in file:
+            writer = csv.writer(csv_file)
+            line = [epoch, iteration]
+            line.extend(variables)
+        writer.writerow(line)
+
+
+def setup_csvs(csvs, model, losses):
+    loss_csv, filters_s_csv, jacob_s_csv, hessian_s_csv = csvs
+
+    header = ['Epoch', 'Iteration']
+    header.extend(losses)
+    with open(loss_csv, 'w') as csv_file:
+        writer = csv.DictWriter(csv_file, fieldnames=header)
+        writer.writeheader()
+
+    header = ['Epoch', 'Iteration']
+    header.extend([str(v.name.split(':')[0].replace('/', '_')) for v in model.gen_filters])
+    header.extend([str(v.name.split(':')[0].replace('/', '_')) for v in model.dis_filters])
+    with open(filters_s_csv, 'w') as csv_file:
+        writer = csv.DictWriter(csv_file, fieldnames=header)
+        writer.writeheader()
+
+    header = ['Epoch', 'Iteration', 'Jacobian Max Singular', 'Jacobian Min Singular']
+    with open(jacob_s_csv, 'w') as csv_file:
+        writer = csv.writer(csv_file)
+        writer.writerow(header)
+
+    header = ['Epoch', 'Iteration']
+    with open(hessian_s_csv, 'w') as csv_file:
+        writer = csv.writer(csv_file)
+        writer.writerow(header)
+
+# Setup output folder.
 def setup_output(show_epochs, epochs, data, n_images, z_dim, data_out_path, model_name, restore, save_img):
 
     checkpoints_path = os.path.join(data_out_path, 'checkpoints')
@@ -65,6 +127,11 @@ def setup_output(show_epochs, epochs, data, n_images, z_dim, data_out_path, mode
     gen_images_path = os.path.join(data_out_path, 'images')
     gen_images = os.path.join(gen_images_path, 'gen_images.h5')
     latent_images = os.path.join(gen_images_path, 'latent_images.h5')
+
+    loss_csv = os.path.join(data_out_path, 'loss.csv')
+    filters_s_csv = os.path.join(data_out_path, 'filter_singular_values.csv')
+    jacob_s_csv = os.path.join(data_out_path, 'jacobian_singular_values.csv')
+    hessian_s_csv = os.path.join(data_out_path, 'hessian_singular_values.csv')
     
     if os.path.isdir(gen_images_path):
          shutil.rmtree(gen_images_path)
@@ -92,7 +159,7 @@ def setup_output(show_epochs, epochs, data, n_images, z_dim, data_out_path, mode
         img_storage = None
         latent_storage = None
 
-    return img_storage, latent_storage, checkpoints
+    return img_storage, latent_storage, checkpoints, [loss_csv, filters_s_csv, jacob_s_csv, hessian_s_csv]
 
 
 # Run session to generate output samples.
@@ -125,3 +192,111 @@ def report_parameters(model, epochs, restore, data_out_path):
             f.write('%s: %s\n' % (attr, value))
 
 
+def gather_filters():
+    gen_filters = list()
+    dis_filters = list()
+    for v in tf.trainable_variables():
+        if 'filter' in v.name:
+            if 'generator' in v.name:
+                gen_filters.append(v)
+            elif 'discriminator' in v.name:
+                dis_filters.append(v)
+            elif 'encoder' in v.name:
+                dis_filters.append(v)
+            else:
+                print('No contemplated filter: ', v.name)
+                print('Review gather_filters()')
+    return gen_filters, dis_filters
+
+
+def retrieve_csv_data(csv_file, sing=0):
+    dictionary = dict()
+    with open(csv_file) as csvfile:
+        reader = csv.DictReader(csvfile)
+        for field in reader.fieldnames:
+            dictionary[field] = list()
+        # ind = 0
+        for row in reader:
+            # ind += 1
+            # if ind < 10:
+                # continue
+            for field in reader.fieldnames:
+                value = row[field].replace('[', '')
+                value = value.replace(']', '')
+                if ' ' in value and 'j' in value:
+                    value = value.replace('j ', 'j_')
+                    value = value.replace(' ', '')
+                    value = value.replace('j_', 'j ')
+                    value = [complex(val).real for val in value.split(' ')]
+                    if sing is None:
+                        value = value[0]/value[1]
+                    else:
+                        value = value[sing]
+                elif 'j' in value:
+                    value = complex(value)
+                    if value.imag > 1e-4:
+                        print('[Warning] Imaginary part of singular value larget than 1e-4:', value)
+                    value = value.real
+                    if value == 0.0:
+                        print('[Warning] Min Singular Value Jacobian: [0.0] ', json.dumps(row))
+                        value = float(1e-3)
+                elif value == '':
+                    print('[Warning] Min Singular Value Jacobian: [None]', json.dumps(row))
+                    value = float(1e-3)
+                else:
+                    value = float(value)
+                dictionary[field].append(value)
+
+    if 'jacobian' in  csv_file:
+        dictionary['Ratio Max/Min'] = list()
+        for p in [i for i in range(len(dictionary['Iteration']))]:
+            dictionary['Ratio Max/Min'].append(np.log(dictionary['Jacobian Max Singular'][p]/dictionary['Jacobian Min Singular'][p]))
+
+    return dictionary
+
+
+def plot_data(data1, data2, filter1=[], filter2=[], dim=20, total_axis=20):
+    mpl.rcParams['figure.figsize'] = dim, dim
+    exclude_b = ['Epoch', 'Iteration']
+    fig, ax1 = plt.subplots()
+    points = [i for i in range(len(data1['data']['Iteration']))]
+
+    # First data plot
+    exclude1 = list()
+    exclude1.extend(exclude_b)
+    exclude1.extend(filter1)
+    ax1.set_xlabel('Iterations (Batch size)')
+    ax1.set_ylabel(data1['name'])
+    for field in data1['data']:
+        flag = False
+        for exclude in exclude1:
+            if exclude in field:
+                flag=True
+                break
+        if flag: continue
+        ax1.plot(points, data1['data'][field], label=field)
+
+    every = int(len(points)/total_axis)
+    if every == 0: every =1
+    plt.xticks(points[0::every], data1['data']['Iteration'][0::every], rotation=45)
+    plt.legend()
+
+    # Second data plot
+    exclude2 = list()
+    exclude2.extend(exclude_b)
+    exclude2.extend(filter2)
+    ax2 = ax1.twinx()  
+    ax2.set_ylabel(data2['name'])  
+    for field in data2['data']:
+        flag = False
+        for exclude in exclude2:
+            if exclude in field:
+                flag=True
+                break
+        if flag: continue
+        ax2.plot(points, data2['data'][field], label=field)
+    plt.xticks(points[0::every], data2['data']['Iteration'][0::every], rotation=45)
+
+    fig.tight_layout()  # otherwise the right y-label is slightly clipped
+    plt.legend()
+    plt.show()
