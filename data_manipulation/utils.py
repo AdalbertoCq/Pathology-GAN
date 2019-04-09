@@ -8,6 +8,7 @@ import h5py
 import math
 import matplotlib.pyplot as plt
 
+
 def save_image(img, job_id, name, train=True):
     if train:
         folder = 'img'
@@ -35,6 +36,44 @@ def load_csv(file_path):
 
 def filter_filenames(filenames, extension):
     return list(filter(lambda f: f.endswith(extension), filenames))
+
+
+def labels_to_binary(labels, n_bits=5):
+    # labels = labels*1e2
+    labels = labels.astype(int)
+    batch_size, l_dim = labels.shape
+    output_labels =  np.zeros((batch_size, n_bits))
+    for b_num in range(batch_size):
+        l = labels[b_num, 0]
+        binary_l = '{0:b}'.format(l)
+        binary_l = list(binary_l)
+        binary_l = list(map(int, binary_l))
+        n_rem = n_bits - len(binary_l)
+        if n_rem > 0:
+            pad =  np.zeros((n_rem), dtype=int)
+            pad = pad.tolist()
+            binary_l = pad + binary_l
+        output_labels[b_num, :] = binary_l
+    return output_labels
+
+
+def labels_to_int(labels):
+    batch_size, l_dim = labels.shape
+    output_labels =  np.zeros((batch_size, 1))
+    line = list()
+    for ind in range(l_dim):
+        line.append(2**ind)
+    line = list(reversed(line))
+    line = np.array(line)
+    for ind in range(batch_size):
+        l = labels[ind, :]
+        l_int = int(np.sum(np.multiply(l,line)))
+        output_labels[ind, :] = l_int
+    # output_labels = output_labels/1e2
+    return output_labels
+
+def labels_normalize(labels, norm_value=50):
+    return labels/norm_value
 
 
 # def filter_black_background(img, black_th, perc_th):
