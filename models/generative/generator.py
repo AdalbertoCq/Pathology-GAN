@@ -5,7 +5,7 @@ from models.generative.normalization import *
 
 display = True
 
-def generator_resnet(z_input, image_channels, layers, spectral, activation, reuse, is_train, normalization, cond_label=None, attention=None, up='upscale'):
+def generator_resnet(z_input, image_channels, layers, spectral, activation, reuse, is_train, normalization, init='xavier', cond_label=None, attention=None, up='upscale'):
 	channels = [32, 64, 128, 256, 512, 1024]
 	reversed_channel = list(reversed(channels[:layers]))
 
@@ -21,12 +21,12 @@ def generator_resnet(z_input, image_channels, layers, spectral, activation, reus
 		# Doesn't work ReLU, tried.
 
 		# Dense.			
-		net = dense(inputs=z_input, out_dim=1024, spectral=spectral, scope=1)			
+		net = dense(inputs=z_input, out_dim=1024, spectral=spectral, init=init, scope=1)			
 		net = batch_norm(inputs=net, training=is_train)
 		net = activation(net)
 		
 		# Dense.
-		net = dense(inputs=net, out_dim=256*7*7, spectral=spectral, scope=2)				
+		net = dense(inputs=net, out_dim=256*7*7, spectral=spectral, init=init, scope=2)				
 		net = batch_norm(inputs=net, training=is_train)
 		net = activation(net)
 		
@@ -35,18 +35,18 @@ def generator_resnet(z_input, image_channels, layers, spectral, activation, reus
 
 		for layer in range(layers):
 			# ResBlock.
-			net = residual_block(inputs=net, filter_size=3, stride=1, padding='SAME', scope=layer, is_training=is_train, spectral=spectral, activation=activation, normalization=normalization, cond_label=cond_label)
+			net = residual_block(inputs=net, filter_size=3, stride=1, padding='SAME', scope=layer, is_training=is_train, spectral=spectral, init=init, activation=activation, normalization=normalization, cond_label=cond_label)
 			
 			# Attention layer. 
 			if attention is not None and net.shape.as_list()[1]==attention:
-				net = attention_block(net, spectral=True, scope=layers)
+				net = attention_block(net, spectral=True, init=init, scope=layers)
 			
 			# Up.
-			net = convolutional(inputs=net, output_channels=reversed_channel[layer], filter_size=2, stride=2, padding='SAME', conv_type=up, spectral=spectral, scope=layer)
+			net = convolutional(inputs=net, output_channels=reversed_channel[layer], filter_size=2, stride=2, padding='SAME', conv_type=up, spectral=spectral, init=init, scope=layer)
 			net = normalization(inputs=net, training=is_train, c=cond_label, spectral=spectral, scope=layer)
 			net = activation(net)
 			
-		logits = convolutional(inputs=net, output_channels=image_channels, filter_size=3, stride=1, padding='SAME', conv_type='convolutional', spectral=spectral, scope='logits')
+		logits = convolutional(inputs=net, output_channels=image_channels, filter_size=3, stride=1, padding='SAME', conv_type='convolutional', spectral=spectral, init=init, scope='logits')
 		output = sigmoid(logits)
 		
 	print()
