@@ -1,19 +1,19 @@
 import tensorflow as tf
 
-def attention_block(x, scope, spectral=True, power_iterations=1, display=True):
+def attention_block(x, scope, spectral=True, init='xavier', power_iterations=1, display=True):
 
     batch_size, height, width, channels = x.get_shape().as_list()
     with tf.variable_scope('attention_block_%s' % scope):
 
         # Global value for all pixels, measures how important is the context for each of them.
-        gamma = tf.get_variable('gamma', shape=(1),initializer=tf.constant_initializer(0.0))
+        gamma = tf.get_variable('gamma', shape=(1), initializer=tf.constant_initializer(0.0))
         f_g_channels = channels//8
 
-        f = convolutional(inputs=x, output_channels=f_g_channels, filter_size=1, stride=1, padding='SAME', conv_type='convolutional', spectral=True, 
+        f = convolutional(inputs=x, output_channels=f_g_channels, filter_size=1, stride=1, padding='SAME', conv_type='convolutional', spectral=True, init=init, 
                           power_iterations=power_iterations, scope=1, display=False)
-        g = convolutional(inputs=x, output_channels=f_g_channels, filter_size=1, stride=1, padding='SAME', conv_type='convolutional', spectral=True, 
+        g = convolutional(inputs=x, output_channels=f_g_channels, filter_size=1, stride=1, padding='SAME', conv_type='convolutional', spectral=True, init=init, 
                           power_iterations=power_iterations, scope=2, display=False)
-        h = convolutional(inputs=x, output_channels=channels    , filter_size=1, stride=1, padding='SAME', conv_type='convolutional', spectral=True, 
+        h = convolutional(inputs=x, output_channels=channels    , filter_size=1, stride=1, padding='SAME', conv_type='convolutional', spectral=True, init=init, 
                           power_iterations=power_iterations, scope=3, display=False)
 
         # Flatten f, g, and h per channel.
@@ -180,12 +180,12 @@ def dense(inputs, out_dim, scope, use_bias=True, spectral=False, power_iteration
 
 
 def residual_block(inputs, filter_size, stride, padding, scope, cond_label=None, is_training=True, normalization=None, use_bias=True, spectral=False, activation=None, 
-                    power_iterations=1, display=True):
+                   init='xavier', power_iterations=1, display=True):
     channels = inputs.shape.as_list()[-1]
     with tf.variable_scope('resblock_%s' % scope):
         with tf.variable_scope('part_1'):
             # Convolutional
-            net = convolutional(inputs, channels, filter_size, stride, padding, 'convolutional', scope=1, spectral=spectral, power_iterations=power_iterations, display=False)
+            net = convolutional(inputs, channels, filter_size, stride, padding, 'convolutional', scope=1, spectral=spectral, init=init, power_iterations=power_iterations, display=False)
             # Normalization
             if normalization is not None: 
                 net = normalization(inputs=net, training=is_training, c=cond_label, spectral=spectral, scope=1)
@@ -194,7 +194,7 @@ def residual_block(inputs, filter_size, stride, padding, scope, cond_label=None,
             
         with tf.variable_scope('part_2'):
             # Convolutional
-            net = convolutional(net, channels, filter_size, stride, padding, 'convolutional', scope=1, spectral=spectral, power_iterations=power_iterations, display=False)
+            net = convolutional(net, channels, filter_size, stride, padding, 'convolutional', scope=1, spectral=spectral, init=init, power_iterations=power_iterations, display=False)
             # Normalization
             if normalization is not None: 
                 net = normalization(inputs=net, training=is_training, c=cond_label, spectral=spectral, scope=2)
