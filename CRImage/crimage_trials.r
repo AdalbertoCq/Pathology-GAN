@@ -35,16 +35,15 @@ trainingData = read.table(t, header=TRUE)
 classifierValues = createClassifier(trainingData) 
 classifier = classifierValues[[1]]
 
-f = "/Users/adalbertoclaudioquiros/Documents/Code/UofG/PhD/Cancer_TMA_Generative/CRImage/test/fake.jpg"
+# f = "/Users/adalbertoclaudioquiros/Documents/Code/UofG/PhD/Cancer_TMA_Generative/CRImage/test/fake.jpg"
 # f = "/Users/adalbertoclaudioquiros/Documents/Code/UofG/PhD/Cancer_TMA_Generative/CRImage/test/real.jpg"
 classValues=classifyCells(classifier, filename=f, KS=TRUE, maxShape=800, minShape=40, failureRegion=2000)
 print(classValues)
-# display(classValues[[1]])
+display(classValues[[2]])
 
-cellularity = calculateCellularity(classifier=classifier, filename=f, KS=TRUE, maxShape=800, minShape=40, failureRegion=2000, classifyStructures=FALSE, 
-									cancerIdentifier="1", numDensityWindows=2, colors=c("green", "red"))
-print(cellularity)
-
-display(cellularity[[2]])
-display(cellularity[[3]])
+# cellularity = calculateCellularity(classifier=classifier, filename=f, KS=TRUE, maxShape=800, minShape=40, failureRegion=2000, classifyStructures=FALSE, 
+									# cancerIdentifier="1", numDensityWindows=2, colors=c("green", "red"))
+#print(cellularity)
+# display(cellularity[[2]])
+# display(cellularity[[3]])
 
