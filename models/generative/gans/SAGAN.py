@@ -35,6 +35,9 @@ class SAGAN(GAN):
 				beta_2=None,                 # Beta 2 value for Adam Optimizer.
 				n_critic=1,                  # Number of batch gradient iterations in Discriminator per Generator.
 				gp_coeff=.5,                 # Gradient Penalty coefficient for the Wasserstein Gradient Penalty loss.
+				conditional=False,			 # Conditional GAN flag.
+				label_dim=None,              # Label space dimensions.
+				init = 'xavier',			 # Weight Initialization: Orthogonal in BigGAN.
 				loss_type='standard',        # Loss function type: Standard, Least Square, Wasserstein, Wasserstein Gradient Penalty.
 				model_name='SAGAN'           # Name to give to the model.
 				):
@@ -43,21 +46,26 @@ class SAGAN(GAN):
 		self.power_iterations = power_iterations
 		self.gp_coeff = gp_coeff
 		self.beta_2 = beta_2
-		super().__init__(data=data, z_dim=z_dim, use_bn=use_bn, alpha=alpha, beta_1=beta_1, learning_rate_g=learning_rate_g, learning_rate_d=learning_rate_d, n_critic=n_critic, loss_type=loss_type, model_name=model_name)
 		self.n_sing = 4
+		super().__init__(data=data, z_dim=z_dim, use_bn=use_bn, alpha=alpha, beta_1=beta_1, learning_rate_g=learning_rate_g, learning_rate_d=learning_rate_d, 
+						 conditional=conditional, label_dim=label_dim, n_critic=n_critic, init=init, loss_type=loss_type, model_name=model_name)
 
-	def discriminator(self, images, reuse):
-		output, logits = discriminator_resnet(images=images, layers=5, spectral=True, activation=leakyReLU, reuse=reuse, attention=28)
+	def discriminator(self, images, reuse, init, label_input=None):
+		output, logits = discriminator_resnet(images=images, layers=5, spectral=True, activation=leakyReLU, reuse=reuse, attention=28, init=init, label=label_input)
 		return output, logits
 
-	def generator(self, z_input, reuse, is_train):
-		output = generator_resnet(z_input=z_input, image_channels=self.image_channels, layers=5, spectral=True, activation=leakyReLU, reuse=reuse, is_train=is_train, normalization=conditional_instance_norm, 
-								cond_label=z_input, attention=28)
+	def generator(self, z_input, reuse, is_train, init, label_input=None):
+		if self.conditional:
+			label = tf.concat([z_input, label_input], axis=1)
+		else:
+			label = z_input
+		output = generator_resnet(z_input=z_input, image_channels=self.image_channels, layers=5, spectral=True, activation=leakyReLU, reuse=reuse, is_train=is_train, 
+								  normalization=conditional_instance_norm, init=init, cond_label=label, attention=28)
 		return output
 
 	def loss(self):
-		loss_dis, loss_gen = losses(self.loss_type, self.output_fake, self.output_real, self.logits_fake, self.logits_real, real_images=self.real_images, 
-										fake_images=self.fake_images, discriminator=self.discriminator, gp_coeff=self.gp_coeff)
+		loss_dis, loss_gen = losses(self.loss_type, self.output_fake, self.output_real, self.logits_fake, self.logits_real, real_images=self.real_images, fake_images=self.fake_images, 
+									discriminator=self.discriminator, gp_coeff=self.gp_coeff)
 		return loss_dis, loss_gen
 
 	def optimization(self):
@@ -88,6 +96,9 @@ class SAGAN(GAN):
 					# Inputs.
 					z_batch = np.random.uniform(low=-1., high=1., size=(self.batch_size, self.z_dim))               
 					feed_dict = {self.z_input:z_batch, self.real_images:batch_images, self.learning_rate_input_g: self.learning_rate_g, self.learning_rate_input_d: self.learning_rate_d}
+					if self.conditional:
+						batch_labels = labels_to_binary(batch_labels, n_bits=self.label_dim)
+						feed_dict[self.label_input] = batch_labels
 
 					# Update critic.
 					session.run([self.train_discriminator], feed_dict=feed_dict)
@@ -99,6 +110,8 @@ class SAGAN(GAN):
 		            # Print losses and Generate samples.
 					if run_epochs % print_epochs == 0:
 						feed_dict = {self.z_input:z_batch, self.real_images:batch_images}
+						if self.conditional:
+							feed_dict[self.label_input] = batch_labels
 						epoch_loss_dis, epoch_loss_gen = session.run([self.loss_dis, self.loss_gen], feed_dict=feed_dict)
 						update_csv(model=self, file=csvs[0], variables=[epoch_loss_gen, epoch_loss_dis], epoch=epoch, iteration=run_epochs, losses=losses)
 						if tracking:
@@ -108,7 +121,7 @@ class SAGAN(GAN):
 							update_csv(model=self, file=csvs[2], variables=jac_sign_values, epoch=epoch, iteration=run_epochs)
 
 					if show_epochs is not None and run_epochs % show_epochs == 0:
-						gen_samples, sample_z = show_generated(session=session, z_input=self.z_input, z_dim=self.z_dim, output_fake=self.output_gen, n_images=n_images, dim=30)
+						gen_samples, sample_z = show_generated(session=session, z_input=self.z_input, z_dim=self.z_dim, label_input=self.label_input, labels=batch_labels, output_fake=self.output_gen, n_images=n_images, dim=30)
 						if save_img:
 							img_storage[run_epochs//show_epochs] = gen_samples
 							latent_storage[run_epochs//show_epochs] = sample_z
@@ -116,5 +129,5 @@ class SAGAN(GAN):
 					run_epochs += 1
 				data.training.reset()
 
-				gen_samples, _ = show_generated(session=session, z_input=self.z_input, z_dim=self.z_dim, output_fake=self.output_gen, n_images=25, show=False)
+				gen_samples, _ = show_generated(session=session, z_input=self.z_input, z_dim=self.z_dim, label_input=self.label_input, labels=batch_labels, output_fake=self.output_gen, n_images=25, show=False)
 				write_sprite_image(filename=os.path.join(data_out_path, 'images/gen_samples_epoch_%s.png' % epoch), data=gen_samples, metadata=False)
