@@ -40,10 +40,6 @@ def conditional_instance_norm(inputs, training, c, scope, spectral=False):
 		beta = tf.expand_dims(tf.expand_dims(beta, 1), 1)
 		
 		mean, variance = tf.nn.moments(inputs, axes=[1,2], keep_dims=True)
-		print('Gamma', gamma.shape)
-		print('Beta', beta.shape)
-		print('Mean', mean.shape)
-		print('Var', variance.shape)
 		batch_norm_output = tf.nn.batch_normalization(inputs, mean, variance, beta, gamma, 1e-10)
 
 	return batch_norm_output
