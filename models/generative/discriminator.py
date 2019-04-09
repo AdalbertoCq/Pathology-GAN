@@ -5,7 +5,7 @@ from models.generative.normalization import *
 
 display = True
 
-def discriminator_resnet(images, layers, spectral, activation, reuse, normalization=None, attention=None, down='downscale', label=None):
+def discriminator_resnet(images, layers, spectral, activation, reuse, init='xavier', normalization=None, attention=None, down='downscale', label=None, infoGAN=False, c_dim=None):
 	net = images
 	channels = [32, 64, 128, 256, 512, 1024]
 
@@ -21,13 +21,13 @@ def discriminator_resnet(images, layers, spectral, activation, reuse, normalizat
 		for layer in range(layers):
 			# ResBlock.
 			net = residual_block(inputs=net, filter_size=3, stride=1, padding='SAME', scope=layer, is_training=True, normalization=normalization, use_bias=True, 
-								 spectral=spectral, activation=activation)
+								 spectral=spectral, init=init, activation=activation)
 			# Attention layer. 
 			if attention is not None and net.shape.as_list()[1]==attention:
-				net = attention_block(net, spectral=True, scope=layers)
+				net = attention_block(net, spectral=True, init=init, scope=layers)
 			
 			# Down.
-			net = convolutional(inputs=net, output_channels=channels[layer], filter_size=4, stride=2, padding='SAME', conv_type=down, spectral=spectral, scope=layer)
+			net = convolutional(inputs=net, output_channels=channels[layer], filter_size=4, stride=2, padding='SAME', conv_type=down, spectral=spectral, init=init, scope=layer)
 			if normalization is not None: net = normalization(inputs=net, training=True)
 			net = activation(net)
 			
@@ -35,19 +35,29 @@ def discriminator_resnet(images, layers, spectral, activation, reuse, normalizat
 		net = tf.layers.flatten(inputs=net)
 
 		# Dense.
-		net = dense(inputs=net, out_dim=channels[-1], spectral=spectral, scope=1)				
+		net = dense(inputs=net, out_dim=channels[-1], spectral=spectral, init=init, scope=1)				
 		if normalization is not None: net = normalization(inputs=net, training=True)
 		net = activation(net)
-		
-		# If label provided, then inner product with linear.
-		if label is not None:
-
 
 		# Dense
-		logits = dense(inputs=net, out_dim=1, spectral=spectral, scope=2)				
+		logits = dense(inputs=net, out_dim=1, spectral=spectral, init=init, scope=2)				
 		output = sigmoid(logits)
 
-		
+		# Discriminator with conditional projection.
+		if label is not None:
+			batch_size, label_dim = label.shape.as_list()
+			inter_dim = int((label_dim+net.shape.as_list()[-1])/2)
+			net_label = dense(inputs=net, out_dim=inter_dim, spectral=spectral, init=init, scope='label_nn_1')
+			if normalization is not None: net_label = normalization(inputs=net_label, training=True)
+			net_label = activation(net_label)
+			label_weight = dense(inputs=net_label, out_dim=channels[-1], spectral=spectral, init=init, scope='label_nn_2')
+			inner_prod = tf.reduce_sum(tf.multiply(net, label_weight), axis=-1)
+			output += inner_prod
+
+		if infoGAN:
+			mean_c_x = dense(inputs=net, out_dim=c_dim, spectral=spectral, init=init, scope=3)
+			logs2_c_x = dense(inputs=net, out_dim=c_dim, spectral=spectral, init=init, scope=4)
+			return output, logits, mean_c_x, logs2_c_x 
 
 			
 	print()
