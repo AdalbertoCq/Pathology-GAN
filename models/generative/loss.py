@@ -105,16 +105,15 @@ def losses(loss_type, output_fake, output_real, logits_fake, logits_real, real_i
             loss_print += 'gradient penalty '
         
     elif 'hinge' in loss_type:
+        loss_dis_real = tf.reduce_mean(tf.maximum(tf.zeros_like(logits_real), tf.ones_like(logits_real) - logits_real))
+        loss_dis_fake = tf.reduce_mean(tf.maximum(tf.zeros_like(logits_real), tf.ones_like(logits_real) + logits_fake))
+        loss_dis = loss_dis_fake + loss_dis_real
 
-        loss_dis_real = tf.reduce_mean(min(0, -1 + logits_real))
-        loss_dis_fake = tf.reduce_mean(min(0, -1 - logits_fake))
-        loss_dis = - (loss_dis_fake + loss_dis_real)
-
-        loss_gen = - loss_dis_fake
+        loss_gen = -tf.reduce_mean(logits_fake)
         loss_print += 'hinge '
 
     else:
-        print('Loss %s not defined' % loss_type)
+        print('Loss: Loss %s not defined' % loss_type)
         sys.exit(1)
 
     if 'infogan' in loss_type:
@@ -134,7 +133,6 @@ def losses(loss_type, output_fake, output_real, logits_fake, logits_real, real_i
 
     if 'infogan' in loss_type:
         return loss_dis, loss_gen, mututal_loss
-
         
     return loss_dis, loss_gen
 
