@@ -163,7 +163,7 @@ def setup_output(show_epochs, epochs, data, n_images, z_dim, data_out_path, mode
 
 
 # Run session to generate output samples.
-def show_generated(session, z_input, z_dim, output_fake, n_images, c_input=None, c_dim=None, dim=20, show=True):
+def show_generated(session, z_input, z_dim, output_fake, n_images, label_input=None, labels=None, c_input=None, c_dim=None, dim=20, show=True):
     gen_samples = list()
     sample_z = list()
     batch_sample = 20
@@ -175,6 +175,8 @@ def show_generated(session, z_input, z_dim, output_fake, n_images, c_input=None,
         if c_input is not None:
             c_batch = np.random.normal(loc=0.0, scale=1.0, size=(batch_sample, c_dim))
             feed_dict[c_input] = c_batch
+        elif label_input is not None:
+            feed_dict[label_input] = labels[:batch_sample, :]
         gen_batch = session.run(output_fake, feed_dict=feed_dict)
         gen_samples.append(gen_batch[rand_sample, :, :, :])
         sample_z.append(z_batch[rand_sample, :])
