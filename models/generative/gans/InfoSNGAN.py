@@ -187,7 +187,6 @@ class InfoSNGAN(GAN):
 		learning_rate_d = tf.placeholder(dtype=tf.float32, name='learning_rate_d')
 		return real_images, z_input, c_input, learning_rate_g, learning_rate_d
 
-
 	def loss(self):
 		loss_dis, loss_gen, mututal_loss = losses(self.loss_type, self.output_fake, self.output_real, self.logits_fake, self.logits_real, real_images=self.real_images, 
 									fake_images=self.fake_images, discriminator=self.discriminator, gp_coeff=self.gp_coeff, mean_c_x_fake=self.mean_c_x_fake, 
