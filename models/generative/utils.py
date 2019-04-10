@@ -217,11 +217,11 @@ def retrieve_csv_data(csv_file, sing=0):
         reader = csv.DictReader(csvfile)
         for field in reader.fieldnames:
             dictionary[field] = list()
-        # ind = 0
+        ind = 0
         for row in reader:
-            # ind += 1
-            # if ind < 10:
-                # continue
+            ind += 1
+            if ind < 2:
+                continue
             for field in reader.fieldnames:
                 value = row[field].replace('[', '')
                 value = value.replace(']', '')

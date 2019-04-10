@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-def attention_block(x, scope, spectral=True, init='xavier', power_iterations=1, display=True):
+def attention_block(x, scope, spectral=True, init='xavier', regularizer=None, power_iterations=1, display=True):
 
     batch_size, height, width, channels = x.get_shape().as_list()
     with tf.variable_scope('attention_block_%s' % scope):
@@ -9,11 +9,11 @@ def attention_block(x, scope, spectral=True, init='xavier', power_iterations=1, 
         gamma = tf.get_variable('gamma', shape=(1), initializer=tf.constant_initializer(0.0))
         f_g_channels = channels//8
 
-        f = convolutional(inputs=x, output_channels=f_g_channels, filter_size=1, stride=1, padding='SAME', conv_type='convolutional', spectral=True, init=init, 
+        f = convolutional(inputs=x, output_channels=f_g_channels, filter_size=1, stride=1, padding='SAME', conv_type='convolutional', spectral=True, init=init, regularizer=regularizer, 
                           power_iterations=power_iterations, scope=1, display=False)
-        g = convolutional(inputs=x, output_channels=f_g_channels, filter_size=1, stride=1, padding='SAME', conv_type='convolutional', spectral=True, init=init, 
+        g = convolutional(inputs=x, output_channels=f_g_channels, filter_size=1, stride=1, padding='SAME', conv_type='convolutional', spectral=True, init=init, regularizer=regularizer, 
                           power_iterations=power_iterations, scope=2, display=False)
-        h = convolutional(inputs=x, output_channels=channels    , filter_size=1, stride=1, padding='SAME', conv_type='convolutional', spectral=True, init=init, 
+        h = convolutional(inputs=x, output_channels=channels    , filter_size=1, stride=1, padding='SAME', conv_type='convolutional', spectral=True, init=init, regularizer=regularizer, 
                           power_iterations=power_iterations, scope=3, display=False)
 
         # Flatten f, g, and h per channel.
@@ -94,7 +94,8 @@ def spectral_normalization(filter, power_iterations):
     return filter_normalized
 
 
-def convolutional(inputs, output_channels, filter_size, stride, padding, conv_type, scope, init='xavier', data_format='NHWC', output_shape=None, spectral=False, power_iterations=1, display=True):
+def convolutional(inputs, output_channels, filter_size, stride, padding, conv_type, scope, init='xavier', regularizer=None, data_format='NHWC', output_shape=None, spectral=False, 
+                  power_iterations=1, display=True):
     with tf.variable_scope('conv_layer_%s' % scope):
         # Weight Initlializer.
         if init=='normal':
@@ -112,7 +113,7 @@ def convolutional(inputs, output_channels, filter_size, stride, padding, conv_ty
 
         # Weight and Bias Initialization.
         bias = tf.get_variable(name='bias', shape=[output_channels], initializer=tf.constant_initializer(0.0), trainable=True, dtype=tf.float32) 
-        filter = tf.get_variable(name='filter_conv', shape=filter_shape, initializer=weight_init, trainable=True, dtype=tf.float32)    
+        filter = tf.get_variable(name='filter_conv', shape=filter_shape, initializer=weight_init, trainable=True, dtype=tf.float32, regularizer=regularizer)    
         
        # Type of convolutional operation.
         if conv_type == 'upscale':
@@ -151,7 +152,7 @@ def convolutional(inputs, output_channels, filter_size, stride, padding, conv_ty
     return output
 
 
-def dense(inputs, out_dim, scope, use_bias=True, spectral=False, power_iterations=1, init='xavier', display=True):
+def dense(inputs, out_dim, scope, use_bias=True, spectral=False, power_iterations=1, init='xavier', regularizer=None, display=True):
     if init=='normal':
         weight_init = tf.initializers.random_normal(stddev=0.02)
     elif init=='orthogonal':
@@ -161,7 +162,7 @@ def dense(inputs, out_dim, scope, use_bias=True, spectral=False, power_iteration
 
     with tf.variable_scope('dense_layer_%s' % scope):
         in_dim = inputs.get_shape()[-1]
-        weights = tf.get_variable('filter_dense', shape=[in_dim, out_dim], dtype=tf.float32, trainable=True, initializer=weight_init)
+        weights = tf.get_variable('filter_dense', shape=[in_dim, out_dim], dtype=tf.float32, trainable=True, initializer=weight_init, regularizer=regularizer)
         
         if spectral:
             output = tf.matmul(inputs, spectral_normalization(weights, power_iterations))
@@ -180,12 +181,12 @@ def dense(inputs, out_dim, scope, use_bias=True, spectral=False, power_iteration
 
 
 def residual_block(inputs, filter_size, stride, padding, scope, cond_label=None, is_training=True, normalization=None, use_bias=True, spectral=False, activation=None, 
-                   init='xavier', power_iterations=1, display=True):
+                   init='xavier', regularizer=None, power_iterations=1, display=True):
     channels = inputs.shape.as_list()[-1]
     with tf.variable_scope('resblock_%s' % scope):
         with tf.variable_scope('part_1'):
             # Convolutional
-            net = convolutional(inputs, channels, filter_size, stride, padding, 'convolutional', scope=1, spectral=spectral, init=init, power_iterations=power_iterations, display=False)
+            net = convolutional(inputs, channels, filter_size, stride, padding, 'convolutional', scope=1, spectral=spectral, init=init, regularizer=regularizer, power_iterations=power_iterations, display=False)
             # Normalization
             if normalization is not None: 
                 net = normalization(inputs=net, training=is_training, c=cond_label, spectral=spectral, scope=1)
@@ -194,7 +195,7 @@ def residual_block(inputs, filter_size, stride, padding, scope, cond_label=None,
             
         with tf.variable_scope('part_2'):
             # Convolutional
-            net = convolutional(net, channels, filter_size, stride, padding, 'convolutional', scope=1, spectral=spectral, init=init, power_iterations=power_iterations, display=False)
+            net = convolutional(net, channels, filter_size, stride, padding, 'convolutional', scope=1, spectral=spectral, init=init, regularizer=regularizer, power_iterations=power_iterations, display=False)
             # Normalization
             if normalization is not None: 
                 net = normalization(inputs=net, training=is_training, c=cond_label, spectral=spectral, scope=2)
