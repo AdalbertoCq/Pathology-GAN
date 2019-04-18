@@ -13,14 +13,6 @@ from models.generative.discriminator import *
 from models.generative.generator import *
 from models.generative.gans.GAN import GAN
 
-'''
-
-Currently missing from the implementation:
-	1. Projection in discriminator.
-
-	Paper parameter values: Adam Optimizer, B1=0, B2=0.9, Lr_disc = 4e-4, Lr_gen=1e-4.
-
-'''
 
 class SAGAN(GAN):
 	def __init__(self,
@@ -37,6 +29,7 @@ class SAGAN(GAN):
 				gp_coeff=.5,                 # Gradient Penalty coefficient for the Wasserstein Gradient Penalty loss.
 				conditional=False,			 # Conditional GAN flag.
 				label_dim=None,              # Label space dimensions.
+				label_t='cat',				 # Type of label: Categorical, Continuous.
 				init = 'xavier',			 # Weight Initialization: Orthogonal in BigGAN.
 				loss_type='standard',        # Loss function type: Standard, Least Square, Wasserstein, Wasserstein Gradient Penalty.
 				model_name='SAGAN'           # Name to give to the model.
@@ -48,19 +41,15 @@ class SAGAN(GAN):
 		self.beta_2 = beta_2
 		self.n_sing = 4
 		super().__init__(data=data, z_dim=z_dim, use_bn=use_bn, alpha=alpha, beta_1=beta_1, learning_rate_g=learning_rate_g, learning_rate_d=learning_rate_d, 
-						 conditional=conditional, label_dim=label_dim, n_critic=n_critic, init=init, loss_type=loss_type, model_name=model_name)
+						 conditional=conditional, label_dim=label_dim, label_t=label_t, n_critic=n_critic, init=init, loss_type=loss_type, model_name=model_name)
 
 	def discriminator(self, images, reuse, init, label_input=None):
-		output, logits = discriminator_resnet(images=images, layers=5, spectral=True, activation=leakyReLU, reuse=reuse, attention=28, init=init, label=label_input)
+		output, logits = discriminator_resnet(images=images, layers=5, spectral=True, activation=leakyReLU, reuse=reuse, attention=28, init=init, label=label_input, label_t=self.label_t)
 		return output, logits
 
 	def generator(self, z_input, reuse, is_train, init, label_input=None):
-		if self.conditional:
-			label = tf.concat([z_input, label_input], axis=1)
-		else:
-			label = z_input
 		output = generator_resnet(z_input=z_input, image_channels=self.image_channels, layers=5, spectral=True, activation=leakyReLU, reuse=reuse, is_train=is_train, 
-								  normalization=conditional_instance_norm, init=init, cond_label=label, attention=28)
+								  normalization=conditional_instance_norm, init=init, cond_label=label_input, attention=28)
 		return output
 
 	def loss(self):
