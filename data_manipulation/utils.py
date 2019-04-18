@@ -38,8 +38,12 @@ def filter_filenames(filenames, extension):
     return list(filter(lambda f: f.endswith(extension), filenames))
 
 
-def labels_to_binary(labels, n_bits=5):
-    # labels = labels*1e2
+def labels_to_binary(labels, n_bits=5, buckets=True):
+    if buckets:
+        lower = (labels<=5)*1
+        upper = (labels>5)*2
+        labels = lower + upper
+
     labels = labels.astype(int)
     batch_size, l_dim = labels.shape
     output_labels =  np.zeros((batch_size, n_bits))
@@ -56,6 +60,12 @@ def labels_to_binary(labels, n_bits=5):
         output_labels[b_num, :] = binary_l
     return output_labels
 
+def survival_5(labels):
+    new_l = np.zeros_like(labels)
+    upper = (labels>5)*1
+    new_l += upper
+
+    return new_l
 
 def labels_to_int(labels):
     batch_size, l_dim = labels.shape
@@ -69,19 +79,11 @@ def labels_to_int(labels):
         l = labels[ind, :]
         l_int = int(np.sum(np.multiply(l,line)))
         output_labels[ind, :] = l_int
-    # output_labels = output_labels/1e2
     return output_labels
 
 def labels_normalize(labels, norm_value=50):
     return labels/norm_value
 
-
-# def filter_black_background(img, black_th, perc_th):
-#     amount_black = ((img < black_th).sum(2) == 3).sum()
-#     ratio_black = ((img < black_th).sum(2) == 3).sum() / (img.shape[0] * img.shape[1])
-#     if ratio_black < perc_th:
-#         return True
-#     return False
 
 # Gets patch from the original image given the config argument:
 # Config: _, y, x, rot, flip
@@ -100,7 +102,8 @@ def get_and_save_patch(augmentations, sets, hdf5_path, dataset_path, train_path,
     total = len(augmentations)
     hdf5_file = h5py.File(hdf5_path, mode='w')
     img_db_shape = (total, patch_h, patch_w, n_channels)
-    labels_db_shape = (total, 1)
+    _, label_sample = sets[0]
+    labels_db_shape = (total, len(label_sample))
     img_storage = hdf5_file.create_dataset(name='%s_img' % type_db, shape=img_db_shape, dtype=np.uint8)
     label_storage = hdf5_file.create_dataset(name='%s_labels' % type_db, shape=labels_db_shape, dtype=np.float32)
 
@@ -112,18 +115,24 @@ def get_and_save_patch(augmentations, sets, hdf5_path, dataset_path, train_path,
             sys.stdout.write('\r%d%% complete  Images processed: %s' % ((i * 100)/total, i))
             sys.stdout.flush()
         index_set, y, x, rot, flip = patch_config
-        file_name, label = sets[index_set]
+        file_name, labels = sets[index_set]
         try:
             augmented_patch = get_augmented_patch(dataset_path, file_name, patch_config, patch_h, patch_w, norm=False)
-            if save:
-                new_file_name = '%s_y%s_x%s_r%s_f%s_label%s.jpg' % (file_name.replace('.jpg', ''), y, x, rot, flip, str(label).replace('.', '__'))
-                new_file_path = os.path.join(train_path, new_file_name)
-                skimage.io.imsave(new_file_path, augmented_patch)
-
-            img_storage[index_patches] = augmented_patch
-            label_storage[index_patches] = label
         except:
             print('\nCan\'t read image file ', file_name)
+
+        if save:
+            label = ''
+            for l in labels:
+                label += '_' + str(l).replace('.', 'p')
+
+            new_file_name = '%s_y%s_x%s_r%s_f%s_label%s.jpg' % (file_name.replace('.jpg', ''), y, x, rot, flip, label)
+            new_file_path = os.path.join(train_path, new_file_name)
+            skimage.io.imsave(new_file_path, augmented_patch)
+
+        img_storage[index_patches] = augmented_patch
+        label_storage[index_patches] = np.array(labels)
+        
         index_patches += 1
     hdf5_file.close()
     print()
