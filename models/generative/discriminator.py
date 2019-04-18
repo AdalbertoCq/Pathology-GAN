@@ -5,7 +5,7 @@ from models.generative.normalization import *
 
 display = True
 
-def discriminator_resnet(images, layers, spectral, activation, reuse, init='xavier', regularizer=None, normalization=None, attention=None, down='downscale', label=None, infoGAN=False, c_dim=None):
+def discriminator_resnet(images, layers, spectral, activation, reuse, init='xavier', regularizer=None, normalization=None, attention=None, down='downscale', label=None, label_t='cat', infoGAN=False, c_dim=None):
 	net = images
 	channels = [32, 64, 128, 256, 512, 1024]
 
@@ -46,12 +46,21 @@ def discriminator_resnet(images, layers, spectral, activation, reuse, init='xavi
 		# Discriminator with conditional projection.
 		if label is not None:
 			batch_size, label_dim = label.shape.as_list()
-			inter_dim = int((label_dim+net.shape.as_list()[-1])/2)
-			net_label = dense(inputs=net, out_dim=inter_dim, spectral=spectral, init=init, regularizer=regularizer, scope='label_nn_1')
-			if normalization is not None: net_label = normalization(inputs=net_label, training=True)
-			net_label = activation(net_label)
-			label_weight = dense(inputs=net_label, out_dim=channels[-1], spectral=spectral, init=init, regularizer=regularizer, scope='label_nn_2')
-			inner_prod = tf.reduce_sum(tf.multiply(net, label_weight), axis=-1)
+			embedding_size = channels[-1]
+			# Categorical Embedding.
+			if label_t == 'cat':
+				emb = embedding(shape=(label_dim, embedding_size), init=init, power_iterations=1)
+				label_emb = tf.matmul(label, emb)
+
+			# Linear conditioning, using NN to produce embedding.
+			else:
+				inter_dim = int((label_dim+net.shape.as_list()[-1])/2)
+				net_label = dense(inputs=net, out_dim=inter_dim, spectral=spectral, init=init, regularizer=regularizer, scope='label_nn_1')
+				if normalization is not None: net_label = normalization(inputs=net_label, training=True)
+				net_label = activation(net_label)
+				label_emb = dense(inputs=net_label, out_dim=embedding_size, spectral=spectral, init=init, regularizer=regularizer, scope='label_nn_2')
+				
+			inner_prod = tf.reduce_sum(tf.multiply(net, label_emb), axis=-1)
 			output += inner_prod
 
 		if infoGAN:

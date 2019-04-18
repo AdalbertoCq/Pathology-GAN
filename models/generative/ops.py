@@ -1,5 +1,19 @@
 import tensorflow as tf
 
+def embedding(shape, init='xavier', power_iterations=1, display=True):
+    if init=='normal':
+        weight_init = tf.initializers.random_normal(stddev=0.02)
+    elif init=='orthogonal':
+        weight_init = tf.initializers.orthogonal()
+    else:
+        weight_init = tf.contrib.layers.xavier_initializer_conv2d()
+    embedding = tf.get_variable('Embedding', shape=shape, initializer=weight_init)
+    embedding = spectral_normalization(embedding, power_iterations=power_iterations)
+    if display:
+        print('Emb. Layer:     Output Shape: %s' % (embedding.shape))
+    return embedding
+    
+
 def attention_block(x, scope, spectral=True, init='xavier', regularizer=None, power_iterations=1, display=True):
 
     batch_size, height, width, channels = x.get_shape().as_list()
