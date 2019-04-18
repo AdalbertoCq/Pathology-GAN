@@ -17,7 +17,8 @@ class GAN:
 				learning_rate_g,             # Learning rate generator.
 				learning_rate_d,             # Learning rate discriminator.
 				conditional=False,			 # Conditional GAN flag.
-				label_dim=None,              # Label space dimensions.
+				num_classes=None,              # Label space dimensions.
+				label_t='cat',				 # Type of label: Categorical, Continuous.
 				n_critic=1,                  # Number of batch gradient iterations in Discriminator per Generator.
 				init = 'xavier',			 # Weight Initialization: Orthogonal in BigGAN.
 				loss_type = 'standard',      # Loss function type: Standard, Least Square, Wasserstein, Wasserstein Gradient Penalty.				
@@ -36,7 +37,8 @@ class GAN:
 
 		# Latent space dimensions.
 		self.z_dim = z_dim
-		self.label_dim = label_dim
+		self.num_classes = num_classes
+		self.label_t = label_t
 		self.conditional = conditional
 
 		# Network details
@@ -108,7 +110,7 @@ class GAN:
 		learning_rate_g = tf.placeholder(dtype=tf.float32, name='learning_rate_g')
 		learning_rate_d = tf.placeholder(dtype=tf.float32, name='learning_rate_d')
 		if self.conditional:
-			label_input = tf.placeholder(dtype=tf.float32, shape=(None, self.label_dim), name='label_input')
+			label_input = tf.placeholder(dtype=tf.float32, shape=(None, self.num_classes), name='label_input')
 		else:
 			label_input = None
 		return real_images, z_input, learning_rate_g, learning_rate_d, label_input
@@ -167,7 +169,7 @@ class GAN:
 					z_batch = np.random.uniform(low=-1., high=1., size=(self.batch_size, self.z_dim))               
 					feed_dict = {self.z_input:z_batch, self.real_images:batch_images, self.learning_rate_input_g: self.learning_rate_g, self.learning_rate_input_d: self.learning_rate_d}
 					if self.conditional:
-						feed_dict[self.label_input] = labels_to_binary(labels, n_bits=self.label_dim)
+						feed_dict[self.label_input] = labels_to_binary(labels, n_bits=self.num_classes)
 
 					# Update critic.
 					session.run(self.train_discriminator, feed_dict=feed_dict)	
