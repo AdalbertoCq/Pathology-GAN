@@ -48,7 +48,7 @@ def optimizer(beta_1, loss_gen, loss_dis, loss_type, learning_rate_input_g, lear
             exit(1)
 
         if display:
-            print('Optimizer: %s' % optimizer_print)
+            print('[Optimizer] Loss %s' % optimizer_print)
             print()
             
     return train_discriminator, train_generator
