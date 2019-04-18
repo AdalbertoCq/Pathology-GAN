@@ -5,7 +5,7 @@ import skimage.io
 import matplotlib.pyplot as plt
 
 class Preprocessor:
-    def __init__(self,  patch_h, patch_w, n_channels, dataset, marker,  labels, overlap=False, save_img=False, project_path=os.getcwd()):
+    def __init__(self,  patch_h, patch_w, n_channels, dataset, marker,  labels=None, overlap=False, save_img=False, project_path=os.getcwd()):
 
         # patches size
         self.patch_h = patch_h
@@ -28,11 +28,18 @@ class Preprocessor:
         self.hdf5 = [self.hdf5_train, self.hdf5_test]
 
         # Loading labels.
-        self.labels_flag = labels
-        if self.labels_flag:
-            label_file = os.path.join(self.dataset_path, 'nki_survival.csv')
+        self.labels = labels
+
+        if self.labels is not None:
+            label_file = os.path.join(self.dataset_path, self.labels)
             table = utils.load_csv(label_file)
-            self.label_dict = self.get_label_dict(table)
+            if 'nki_survival' in labels:
+                id_col='rosid'
+                label_col=['Survival_2005', 'ER']
+            elif 'vgh_survival' in labels:
+                id_col='Patient ID'
+                label_col=['Overall Survival', 'ER (IHC)^^'] 
+            self.label_dict = self.get_label_dict(table, id_col=id_col, label_col=label_col)
 
         # Loading jpg files.
         filenames = os.listdir(self.dataset_path)
@@ -57,21 +64,38 @@ class Preprocessor:
 
     # 
     @staticmethod
-    def get_label_dict(table, id_col='rosid', label_col='Survival_2005'):
+    def get_label_dict(table, id_col, label_col):
+        complete = dict()
         # Row defining attributes.
         first_row = table[0]
-        # Indexes for the 'rosid' and 'Survival_2005'.
+        
+        # Get indexes of fields in row.
         id_col = first_row.index(id_col)
-        label_col = first_row.index(label_col)
-        # map(function, iterables)
-        # Dictionary with values of key=rosid, value= Survival_2005,
-        return dict(map(lambda row: (row[id_col], row[label_col]), table[1:]))
+        l_index = list()
+        for l_col in label_col:
+            l_index.append(first_row.index(l_col))
+
+        # Get all labels per row.
+        for row in table[1:]:
+            row_flag = False
+            patient = row[id_col]
+            row_labels = list()
+            for l_i in l_index:
+                if '1' == row[l_i] or 'Positive' == row[l_i]:
+                    row_labels.append(1)
+                    continue
+                elif '0' == row[l_i] or 'Negative' == row[l_i]:
+                    row_labels.append(0)
+                    continue
+                row_labels.append(float(row[l_i]))
+            complete[patient] = row_labels
+        return complete
 
     # 
     def get_label(self, filename):
-        if self.labels_flag:
+        if self.labels is not None:
             patient_id = filename.split('_')[0]
-            label = float(self.label_dict[patient_id])
+            label = [l for l in self.label_dict[patient_id]]
         else:
             label = filename.split('_')[0]
             label = float(label)
@@ -139,7 +163,7 @@ class Preprocessor:
                  [('Image name.jpg',       Survival years), ...]
             '''
             current_img_idx = 0
-            for filename, surv_expec in set_:
+            for filename, labels in set_:
                 self.patches_per_file[filename] = 0
                 n = len(augmentation_set)
                 for config in self.sample_patches(filename):
