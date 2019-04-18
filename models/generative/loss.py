@@ -2,7 +2,7 @@ import tensorflow as tf
 import numpy as np
 import sys
 
-def losses(loss_type, output_fake, output_real, logits_fake, logits_real, real_images=None, fake_images=None, discriminator=None, gp_coeff=None, mean_c_x_fake=None, 
+def losses(loss_type, output_fake, output_real, logits_fake, logits_real, real_images=None, fake_images=None, discriminator=None, init=None, gp_coeff=None, mean_c_x_fake=None, 
            logs2_c_x_fake=None, input_c=None, delta=1, display=True):
 
     # Variable to track which loss function is actually used.
@@ -40,7 +40,7 @@ def losses(loss_type, output_fake, output_real, logits_fake, logits_real, real_i
             # Calculating X hat.
             epsilon = tf.random.uniform(shape=tf.stack([tf.shape(real_images)[0], 1, 1, 1]), minval=0.0, maxval=1.0, dtype=tf.float32, name='epsilon')
             x_gp = real_images*(1-epsilon) + fake_images*epsilon
-            out = discriminator(x_gp, True)
+            out = discriminator(x_gp, True, init=init)
             logits_gp = out[1]
 
             # Calculating Gradient Penalty.
@@ -94,7 +94,7 @@ def losses(loss_type, output_fake, output_real, logits_fake, logits_real, real_i
             # Calculating X hat.
             epsilon = tf.random.uniform(shape=tf.stack([tf.shape(real_images)[0], 1, 1, 1]), minval=0.0, maxval=1.0, dtype=tf.float32, name='epsilon')
             x_gp = real_images*(1-epsilon) + fake_images*epsilon
-            out = discriminator(x_gp, True)
+            out = discriminator(x_gp, True, init=init)
             logits_gp = out[1]
 
             # Calculating Gradient Penalty.
@@ -129,7 +129,7 @@ def losses(loss_type, output_fake, output_real, logits_fake, logits_real, real_i
         loss_print += 'infogan '
 
     if display:
-        print('Loss: %s' % loss_print)
+        print('[Loss] Loss %s' % loss_print)
 
     if 'infogan' in loss_type:
         return loss_dis, loss_gen, mututal_loss
