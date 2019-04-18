@@ -14,10 +14,11 @@ from models.generative.discriminator import *
 from models.generative.generator import *
 from models.generative.gans.GAN import GAN
 
+
 class BigGAN(GAN):
 	def __init__(self,
 				data,                        # Dataset class, training and test data.
-				z_dim,                       # Latent space dimensions.
+				z_dim,	                     # Latent space dimensions.
 				use_bn,                      # Batch Normalization flag to control usage in discriminator.
 				alpha,                       # Alpha value for LeakyReLU.
 				beta_1,                      # Beta 1 value for Adam Optimizer.
@@ -29,6 +30,8 @@ class BigGAN(GAN):
 				gp_coeff=.5,                 # Gradient Penalty coefficient for the Wasserstein Gradient Penalty loss.
 				conditional=False,			 # Conditional GAN flag.
 				label_dim=None,              # Label space dimensions.
+				num_classes=2,				 # Label number of different classes.
+				label_t='cat',				 # Type of label: Categorical, Continuous.
 				init = 'orthogonal',		 # Weight Initialization: Orthogonal in BigGAN.
 				loss_type='hinge',  	     # Loss function type: Standard, Least Square, Wasserstein, Wasserstein Gradient Penalty.
 				regularizer_scale=1e-4,      # Orthogonal regularization.
@@ -41,25 +44,27 @@ class BigGAN(GAN):
 		self.beta_2 = beta_2
 		self.regularizer_scale = regularizer_scale
 		self.n_sing = 4
+		self.label_dim = label_dim
+		self.num_classes = num_classes
+		if conditional:
+			self.normalization = conditional_batch_norm
+		else:
+			self.normalization = conditional_instance_norm
 		super().__init__(data=data, z_dim=z_dim, use_bn=use_bn, alpha=alpha, beta_1=beta_1, learning_rate_g=learning_rate_g, learning_rate_d=learning_rate_d, 
-						 conditional=conditional, label_dim=label_dim, n_critic=n_critic, init=init, loss_type=loss_type, model_name=model_name)
+						 conditional=conditional, num_classes=num_classes, label_t=label_t, n_critic=n_critic, init=init, loss_type=loss_type, model_name=model_name)
 
 	def discriminator(self, images, reuse, init, label_input=None):
 		output, logits = discriminator_resnet(images=images, layers=5, spectral=True, activation=leakyReLU, reuse=reuse, attention=28, init=init, regularizer=orthogonal_reg(self.regularizer_scale), label=label_input)
 		return output, logits
 
 	def generator(self, z_input, reuse, is_train, init, label_input=None):
-		if self.conditional:
-			label = tf.concat([z_input, label_input], axis=1)
-		else:
-			label = z_input
-		output = generator_resnet(z_input=z_input, image_channels=self.image_channels, layers=5, spectral=True, activation=leakyReLU, reuse=reuse, is_train=is_train, 
-								  normalization=conditional_instance_norm, init=init, regularizer=orthogonal_reg(self.regularizer_scale), cond_label=label, attention=28)
+		output = generator_resnet(z_input=z_input, image_channels=self.image_channels, layers=5, spectral=True, activation=leakyReLU, reuse=reuse, is_train=is_train, bigGAN=False, 
+								  normalization=self.normalization, init=init, regularizer=orthogonal_reg(self.regularizer_scale), cond_label=label_input, attention=28)
 		return output
 
 	def loss(self):
 		loss_dis, loss_gen = losses(self.loss_type, self.output_fake, self.output_real, self.logits_fake, self.logits_real, real_images=self.real_images, fake_images=self.fake_images, 
-									discriminator=self.discriminator, gp_coeff=self.gp_coeff)
+									discriminator=self.discriminator, gp_coeff=self.gp_coeff, init=self.init)
 		return loss_dis, loss_gen
 
 	def optimization(self):
@@ -91,7 +96,10 @@ class BigGAN(GAN):
 					z_batch = np.random.uniform(low=-1., high=1., size=(self.batch_size, self.z_dim))               
 					feed_dict = {self.z_input:z_batch, self.real_images:batch_images, self.learning_rate_input_g: self.learning_rate_g, self.learning_rate_input_d: self.learning_rate_d}
 					if self.conditional:
-						batch_labels = labels_to_binary(batch_labels, n_bits=self.label_dim)
+						batch_labels = np.reshape(batch_labels[:, self.label_dim], (-1, 1))
+						if self.label_dim==0:
+							batch_labels = survival_5(batch_labels)
+						batch_labels = tf.keras.utils.to_categorical(y=batch_labels, num_classes=2)
 						feed_dict[self.label_input] = batch_labels
 
 					# Update critic.
