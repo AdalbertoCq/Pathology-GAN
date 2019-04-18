@@ -8,6 +8,7 @@ import h5py
 import tensorflow as tf
 import csv
 import json
+import random
 
 
 # Simple function to plot number images.
@@ -211,7 +212,7 @@ def gather_filters():
     return gen_filters, dis_filters
 
 
-def retrieve_csv_data(csv_file, sing=0):
+def retrieve_csv_data(csv_file, limit_row=None, sing=0):
     dictionary = dict()
     with open(csv_file) as csvfile:
         reader = csv.DictReader(csvfile)
@@ -222,6 +223,8 @@ def retrieve_csv_data(csv_file, sing=0):
             ind += 1
             if ind < 2:
                 continue
+            elif limit_row is not None and ind >= limit_row:
+                break
             for field in reader.fieldnames:
                 value = row[field].replace('[', '')
                 value = value.replace(']', '')
@@ -257,11 +260,16 @@ def retrieve_csv_data(csv_file, sing=0):
     return dictionary
 
 
-def plot_data(data1, data2, filter1=[], filter2=[], dim=20, total_axis=20):
+def plot_data(data1, data2=None, filter1=[], filter2=[], dim=20, total_axis=20):
     mpl.rcParams['figure.figsize'] = dim, dim
     exclude_b = ['Epoch', 'Iteration']
     fig, ax1 = plt.subplots()
     points = [i for i in range(len(data1['data']['Iteration']))]
+
+    cmap = plt.get_cmap('gnuplot')
+    colors = [cmap(i) for i in np.linspace(0, 1, 8)]
+    random.shuffle(colors)
+    ind = 0
 
     # First data plot
     exclude1 = list()
@@ -269,6 +277,7 @@ def plot_data(data1, data2, filter1=[], filter2=[], dim=20, total_axis=20):
     exclude1.extend(filter1)
     ax1.set_xlabel('Iterations (Batch size)')
     ax1.set_ylabel(data1['name'])
+    # ax1.set_color_cycle(['red', 'black', 'yellow'])
     for field in data1['data']:
         flag = False
         for exclude in exclude1:
@@ -276,29 +285,33 @@ def plot_data(data1, data2, filter1=[], filter2=[], dim=20, total_axis=20):
                 flag=True
                 break
         if flag: continue
-        ax1.plot(points, data1['data'][field], label=field)
+        ax1.plot(points, data1['data'][field], label='%s %s' %(data1['name'].split(' ')[1],field), color=colors[ind])
+        ind += 1
 
     every = int(len(points)/total_axis)
     if every == 0: every =1
     plt.xticks(points[0::every], data1['data']['Iteration'][0::every], rotation=45)
-    plt.legend()
+    plt.legend(loc='upper left')
 
+    if data2 is not None:
     # Second data plot
-    exclude2 = list()
-    exclude2.extend(exclude_b)
-    exclude2.extend(filter2)
-    ax2 = ax1.twinx()  
-    ax2.set_ylabel(data2['name'])  
-    for field in data2['data']:
-        flag = False
-        for exclude in exclude2:
-            if exclude in field:
-                flag=True
-                break
-        if flag: continue
-        ax2.plot(points, data2['data'][field], label=field)
-    plt.xticks(points[0::every], data2['data']['Iteration'][0::every], rotation=45)
+        exclude2 = list()
+        exclude2.extend(exclude_b)
+        exclude2.extend(filter2)
+        ax2 = ax1.twinx()  
+        ax2.set_ylabel(data2['name']) 
+        # ax1.set_color_cycle(['blue', 'green', 'orange']) 
+        for field in data2['data']:
+            flag = False
+            for exclude in exclude2:
+                if exclude in field:
+                    flag=True
+                    break
+            if flag: continue
+            ax2.plot(points, data2['data'][field], label='%s %s' %(data2['name'].split(' ')[1],field), color=colors[ind])
+            ind += 1
+        plt.xticks(points[0::every], data2['data']['Iteration'][0::every], rotation=45)
 
-    fig.tight_layout()  # otherwise the right y-label is slightly clipped
-    plt.legend()
+        fig.tight_layout()  # otherwise the right y-label is slightly clipped
+        plt.legend(loc='upper right')
     plt.show()
