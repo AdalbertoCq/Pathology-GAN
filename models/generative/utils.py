@@ -9,6 +9,7 @@ import tensorflow as tf
 import csv
 import json
 import random
+import math
 
 
 # Simple function to plot number images.
@@ -212,7 +213,7 @@ def gather_filters():
     return gen_filters, dis_filters
 
 
-def retrieve_csv_data(csv_file, limit_row=None, sing=0):
+def retrieve_csv_data(csv_file, limit_head=2, limit_row=None, sing=0):
     dictionary = dict()
     with open(csv_file) as csvfile:
         reader = csv.DictReader(csvfile)
@@ -221,7 +222,7 @@ def retrieve_csv_data(csv_file, limit_row=None, sing=0):
         ind = 0
         for row in reader:
             ind += 1
-            if ind < 2:
+            if ind < limit_head:
                 continue
             elif limit_row is not None and ind >= limit_row:
                 break
@@ -315,3 +316,31 @@ def plot_data(data1, data2=None, filter1=[], filter2=[], dim=20, total_axis=20):
         fig.tight_layout()  # otherwise the right y-label is slightly clipped
         plt.legend(loc='upper right')
     plt.show()
+
+def display_activations(layer_activations, image, images_row, dim=None):
+    if dim is not None:
+        import matplotlib as mpl
+        mpl.rcParams['figure.figsize'] = dim, dim
+    num_channels = layer_activations.shape[-1]
+    img_width = layer_activations.shape[2]
+    img_height = layer_activations.shape[1]
+    rows = math.ceil(num_channels/images_row)
+    grid = np.zeros((img_height*rows, img_width*images_row))
+    
+    print('Number of Channels:', num_channels)
+    print('Number of Rows:', rows)
+    for channel in range(num_channels):
+        channel_image = layer_activations[image, :, :, channel]
+        channel_image -= channel_image.mean() 
+        channel_image /= channel_image.std()
+        channel_image *= 64
+        channel_image += 128
+        channel_image = np.clip(channel_image, 0, 255).astype('uint8')
+        grid_row = int(channel/images_row)
+        grid_col = channel%images_row
+        grid[grid_row*img_height : grid_row*img_height + img_height, grid_col*img_width: grid_col*img_width + img_width] = channel_image
+
+    scale = 1. / num_channels
+    plt.figure(figsize=(scale * grid.shape[1], scale * grid.shape[0]))
+    plt.matshow(grid)
+    
