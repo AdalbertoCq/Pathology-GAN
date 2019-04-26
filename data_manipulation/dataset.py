@@ -61,11 +61,6 @@ class Dataset:
         adapted[i] = label if len(adapted) == 1 else 1.0
         return adapted
 
-    # def get_example(self, config):
-    #     img_filename, label = self.set[config[0]]
-    #     augmented_patch = utils.get_augmented_patch(self.path, img_filename, config, self.patch_h, self.patch_w)
-    #     return augmented_patch, self.adapt_label(label), config[0]
-
     def next_batch(self, n):
         if self.done:
             self.done = False
