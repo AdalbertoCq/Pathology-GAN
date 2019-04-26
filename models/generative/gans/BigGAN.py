@@ -24,6 +24,7 @@ class BigGAN(GAN):
 				beta_1,                      # Beta 1 value for Adam Optimizer.
 				learning_rate_g,             # Learning rate generator.
 				learning_rate_d,             # Learning rate discriminator.
+				layers=5,					 # Number for layers for Generator/Discriminator.
 				power_iterations=1,          # Iterations of the power iterative method: Calculation of Eigenvalues, Singular Values.
 				beta_2=None,                 # Beta 2 value for Adam Optimizer.
 				n_critic=1,                  # Number of batch gradient iterations in Discriminator per Generator.
@@ -38,6 +39,7 @@ class BigGAN(GAN):
 				model_name='BigGAN'          # Name to give to the model.
 				):
 
+		self.layers = layers
 		# Training parameters
 		self.power_iterations = power_iterations
 		self.gp_coeff = gp_coeff
@@ -50,15 +52,16 @@ class BigGAN(GAN):
 			self.normalization = conditional_batch_norm
 		else:
 			self.normalization = conditional_instance_norm
+			self.normalization = conditional_batch_norm
 		super().__init__(data=data, z_dim=z_dim, use_bn=use_bn, alpha=alpha, beta_1=beta_1, learning_rate_g=learning_rate_g, learning_rate_d=learning_rate_d, 
 						 conditional=conditional, num_classes=num_classes, label_t=label_t, n_critic=n_critic, init=init, loss_type=loss_type, model_name=model_name)
 
 	def discriminator(self, images, reuse, init, label_input=None):
-		output, logits = discriminator_resnet(images=images, layers=5, spectral=True, activation=leakyReLU, reuse=reuse, attention=28, init=init, regularizer=orthogonal_reg(self.regularizer_scale), label=label_input)
+		output, logits = discriminator_resnet(images=images, layers=self.layers, spectral=True, activation=leakyReLU, reuse=reuse, attention=28, init=init, regularizer=orthogonal_reg(self.regularizer_scale), label=label_input)
 		return output, logits
 
 	def generator(self, z_input, reuse, is_train, init, label_input=None):
-		output = generator_resnet(z_input=z_input, image_channels=self.image_channels, layers=5, spectral=True, activation=leakyReLU, reuse=reuse, is_train=is_train, bigGAN=False, 
+		output = generator_resnet(z_input=z_input, image_channels=self.image_channels, layers=self.layers, spectral=True, activation=leakyReLU, reuse=reuse, is_train=is_train, bigGAN=False, 
 								  normalization=self.normalization, init=init, regularizer=orthogonal_reg(self.regularizer_scale), cond_label=label_input, attention=28)
 		return output
 
