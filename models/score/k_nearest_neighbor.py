@@ -3,9 +3,9 @@ import numpy as np
 from models.score.utils import *
 
 
-def k_nearest_neighbor(x, y, k):
-    x_samples = x.shape.as_list()[0]
-    y_samples = y.shape.as_list()[0]
+def k_nearest_neighbor_tf_part(x, y, k):
+    x_samples = tf.shape(x)[0]
+    y_samples = tf.shape(y)[0]
 
     xx_d = euclidean_distance(x, x)
     yy_d = euclidean_distance(y, y)
@@ -30,7 +30,7 @@ def k_nearest_neighbor(x, y, k):
     Diagonals of this tensor are the distance for the vector with itself.
     '''
     total_dist = tf.sqrt(tf.abs(total_dist))
-    inf_eye = tf.eye(total_dist.shape.as_list()[0])*1e+7
+    inf_eye = tf.eye(tf.shape(total_dist)[0])*1e+7
 
     #All element positive now, no smallest elements functions.
     all_dist = tf.math.add(inf_eye, total_dist)
@@ -38,22 +38,36 @@ def k_nearest_neighbor(x, y, k):
     values, indices = tf.math.top_k(input=neg_all_dist, k=k, sorted=True)
     values = tf.negative(values)
 
-    num_vectors, k_ = indices.shape.as_list()
-    addition_labels = np.zeros((x_samples+y_samples, 1))
+    return indices, labels
+    
+    # This part is a pain in the ass to do with tensorflow.
+    # addition_labels = tf.get_variable(initializer=tf.zeros_initializer(), shape=(), name='addition_labels')
+    # def find_acc_labels(addition_labels, indices, labels, k):
+    #     for i in tf.shape(indices)[0]:
+    #         add = 0
+    #         for j in range(k):
+    #             a = tf.gather_nd(indices, [i, j])
+    #             add += tf.gather_nd(labels, [a, 0])
+    #         tf.assign(addition_labels[i], add)
+    # find_acc_labels(addition_labels, indices, labels, k)
 
+
+def k_nearest_neighbor_np_part(indices, labels, k, x_samples):
+    num_vectors = indices.shape[0]
+    addition_labels = np.zeros((num_vectors, 1))
     for i in range(num_vectors):
         add = 0
         for j in range(k):
             add += labels[indices[i, j]]
+    
         addition_labels[i] = add
 
-    reference = (k/2.)* np.ones((x_samples+y_samples, 1))
-    prediction = tf.cast(tf.greater(addition_labels, reference), tf.float32)
-    
-    true_positive = tf.reduce_sum(prediction*labels)
-    false_positive = tf.reduce_sum(prediction*(1-labels))
-    true_negative = tf.reduce_sum((1-prediction)*labels)
-    false_negative = tf.reduce_sum((1-prediction)*(1-labels))
+    # Numpy implemementation.
+    prediction = 1.*(addition_labels>(k/2.))
+    true_positive = np.sum(prediction*labels)
+    false_positive = np.sum(prediction*(1-labels))
+    true_negative = np.sum((1-prediction)*labels)
+    false_negative = np.sum((1-prediction)*(1-labels))
     
     precision = true_positive/(true_positive+false_positive)
     recall = true_positive/(true_positive+false_negative)
@@ -61,9 +75,9 @@ def k_nearest_neighbor(x, y, k):
     accuracy_true = true_positive/(true_positive+false_negative)
     accuracy_false = true_negative/(true_negative+false_positive)
     
-    matched = tf.cast(tf.equal(labels, prediction), tf.float32)
-    accuracy_x = tf.reduce_mean(matched[:x_samples, :])
-    accuracy_y = tf.reduce_mean(matched[x_samples:, :])
-    accuracy = tf.reduce_mean(matched)
+    matched = np.equal(labels, prediction)*1.
+    accuracy_x = np.mean(matched[:x_samples, :])
+    accuracy_y = np.mean(matched[x_samples:, :])
+    accuracy = np.mean(matched)
 
     return accuracy_x, accuracy_y, accuracy

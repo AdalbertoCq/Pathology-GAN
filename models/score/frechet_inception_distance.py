@@ -8,7 +8,6 @@ def frechet_inception_distance(x_features, y_features, batch_size, sqrt=False):
 	batch_scores = list()
 	batches = int(x_features.shape.as_list()[0]/batch_size)
 	for i in range(batches):
-		print('Batch numb:', i)
 		if batches-1 == i: 
 			x_features_batch = x_features[i*batch_size: , :]
 			y_features_batch = y_features[i*batch_size: , :]

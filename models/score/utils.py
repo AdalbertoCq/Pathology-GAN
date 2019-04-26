@@ -11,14 +11,20 @@ def polinomial_kernel(x, y, gamma=1, coef=1, degree=3):
 
 # Euclidean distance, pair-wise comparison. 
 def euclidean_distance(x, y, squared=True):
-	num_sample_x = x.shape.as_list()[0]
-	num_sample_y = y.shape.as_list()[0]
+	# num_sample_x = x.shape.as_list()[0]
+	# num_sample_y = y.shape.as_list()[0]
 
-	x_reshape = tf.reshape(x, shape=(num_sample_x, -1))
-	y_reshape = tf.reshape(y, shape=(num_sample_y, -1))
+	# x_reshape = tf.reshape(x, shape=(num_sample_x, -1))
+	# y_reshape = tf.reshape(y, shape=(num_sample_y, -1))
 
-	x_2 = tf.reduce_sum(x_reshape**2, axis=-1, keep_dims=True)
-	y_2 = tf.reduce_sum(y_reshape**2, axis=-1, keep_dims=True)
+	x_sum_dims = sum(x.shape.as_list()[1:])
+	y_sum_dims = sum(y.shape.as_list()[1:])
+
+	x_reshape = tf.reshape(x, shape=(-1, x_sum_dims))
+	y_reshape = tf.reshape(y, shape=(-1, y_sum_dims))
+
+	x_2 = tf.reduce_sum(x_reshape**2, axis=-1, keepdims=True)
+	y_2 = tf.reduce_sum(y_reshape**2, axis=-1, keepdims=True)
 	y_2 = tf.transpose(y_2)
 	x_y = dot_product(x, y)
     
@@ -35,30 +41,30 @@ def euclidean_distance(x, y, squared=True):
 
 # Dot product of all pair-wise vectors.
 def dot_product(x, y):
-    num_sample_x = x.shape.as_list()[0]
-    num_sample_y = y.shape.as_list()[0]
+	x_sum_dims = sum(x.shape.as_list()[1:])
+	y_sum_dims = sum(y.shape.as_list()[1:])
 
-    x_reshape = tf.reshape(x, shape=(num_sample_x, -1))
-    y_reshape = tf.reshape(y, shape=(num_sample_y, -1))
+	x_reshape = tf.reshape(x, shape=(-1, x_sum_dims))
+	y_reshape = tf.reshape(y, shape=(-1, y_sum_dims))
 
-    dot_prod = tf.matmul(x_reshape, y_reshape, transpose_b=True)
-    return dot_prod
+	dot_prod = tf.matmul(x_reshape, y_reshape, transpose_b=True)
+	return dot_prod
 
 def covariance(x):
-    mean_x = tf.reduce_mean(x, axis=0, keep_dims=True)
+    mean_x = tf.reduce_mean(x, axis=0, keepdims=True)
     mx = tf.matmul(mean_x, mean_x, transpose_a=True)
     vx = tf.matmul(x, x, transpose_a=True)/tf.cast(x.shape.as_list()[0], tf.float32)
     covariance = vx - mx
     return covariance
 
 def maximum_mean_discrepancy(k_xx, k_yy, k_xy):
-	samples_x = k_xx.shape.as_list()[0]
-	samples_y = k_yy.shape.as_list()[0]
+	samples_x = tf.cast(tf.shape(k_xx)[0], dtype=tf.float32)
+	samples_y = tf.cast(tf.shape(k_yy)[0], dtype=tf.float32)
 
-	k_xx_diag = tf.multiply(k_xx, tf.eye(k_xx.shape.as_list()[0]))
+	k_xx_diag = tf.multiply(k_xx, tf.eye(tf.shape(k_xx)[0]))
 	k_xx = k_xx - k_xx_diag
 
-	k_yy_diag = tf.multiply(k_yy, tf.eye(k_yy.shape.as_list()[0]))
+	k_yy_diag = tf.multiply(k_yy, tf.eye(tf.shape(k_yy)[0]))
 	k_yy = k_yy - k_yy_diag
 
 	E_xx = tf.reduce_sum(k_xx)/(samples_x*(samples_x-1))

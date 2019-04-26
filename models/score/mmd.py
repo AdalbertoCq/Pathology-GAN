@@ -3,7 +3,7 @@ import numpy as np
 from models.score.utils import *
 
 
-def mmd_score(x, y, sigma=1):
+def maximmum_mean_discrepancy_score(x, y, sigma=1):
 	xx_d = euclidean_distance(x, x)
 	yy_d = euclidean_distance(y, y)
 	xy_d = euclidean_distance(x, y)
