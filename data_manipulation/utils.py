@@ -103,7 +103,11 @@ def get_and_save_patch(augmentations, sets, hdf5_path, dataset_path, train_path,
     hdf5_file = h5py.File(hdf5_path, mode='w')
     img_db_shape = (total, patch_h, patch_w, n_channels)
     _, label_sample = sets[0]
-    labels_db_shape = (total, len(label_sample))
+    if not isinstance(label_sample, (list)):
+        len_label = 1
+    else:
+        len_label = len(label_sample)
+    labels_db_shape = (total, len_label)
     img_storage = hdf5_file.create_dataset(name='%s_img' % type_db, shape=img_db_shape, dtype=np.uint8)
     label_storage = hdf5_file.create_dataset(name='%s_labels' % type_db, shape=labels_db_shape, dtype=np.float32)
 
@@ -123,8 +127,11 @@ def get_and_save_patch(augmentations, sets, hdf5_path, dataset_path, train_path,
 
         if save:
             label = ''
-            for l in labels:
-                label += '_' + str(l).replace('.', 'p')
+            if not isinstance(label_sample, (list)):
+                label = str(labels)
+            else:
+                for l in labels:
+                    label += '_' + str(l).replace('.', 'p')
 
             new_file_name = '%s_y%s_x%s_r%s_f%s_label%s.jpg' % (file_name.replace('.jpg', ''), y, x, rot, flip, label)
             new_file_path = os.path.join(train_path, new_file_name)
@@ -201,3 +208,8 @@ def write_sprite_image(data, filename=None, metadata=True, row_n=None):
         plt.imsave(filename, data)
 
     return data
+
+def read_hdf5(path, dic):
+    hdf5_file = h5py.File(path, 'r')
+    return hdf5_file[dic]
+
