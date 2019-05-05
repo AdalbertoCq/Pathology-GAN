@@ -1,6 +1,7 @@
 import tensorflow as tf
 import tensorflow_probability as tfp
 from data_manipulation.utils import *
+from models.evaluation.features import *
 from models.generative.ops import *
 from models.generative.utils import *
 from models.generative.tools import *
@@ -74,7 +75,7 @@ class BigGAN(GAN):
 		train_discriminator, train_generator = optimizer(self.beta_1, self.loss_gen, self.loss_dis, self.loss_type, self.learning_rate_input_g, self.learning_rate_input_d, beta_2=self.beta_2)
 		return train_discriminator, train_generator
 
-	def train(self, epochs, data_out_path, data, restore, show_epochs=100, print_epochs=10, n_images=10, save_img=False, tracking=False):
+	def train(self, epochs, data_out_path, data, restore, show_epochs=100, print_epochs=10, n_images=10, save_img=False, tracking=False, evaluation=None):
 		run_epochs = 0    
 		saver = tf.train.Saver()
 
@@ -130,9 +131,13 @@ class BigGAN(GAN):
 						if save_img:
 							img_storage[run_epochs//show_epochs] = gen_samples
 							latent_storage[run_epochs//show_epochs] = sample_z
-					
+					break
+
 					run_epochs += 1
 				data.training.reset()
 
 				gen_samples, _ = show_generated(session=session, z_input=self.z_input, z_dim=self.z_dim, label_input=self.label_input, labels=batch_labels, output_fake=self.output_gen, n_images=25, show=False)
 				write_sprite_image(filename=os.path.join(data_out_path, 'images/gen_samples_epoch_%s.png' % epoch), data=gen_samples, metadata=False)
+
+				if evaluation is not None and epoch >= evaluation:
+					generate_samples_epoch(session=session, model=self, data_shape=data.test.shape[1:], epoch=epoch, evaluation_path=os.path.join(data_out_path, 'evaluation'))
