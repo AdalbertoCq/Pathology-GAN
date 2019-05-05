@@ -6,14 +6,15 @@ if platform.system() == 'Linux':
 elif platform.system() == 'Darwin':
     main_path = '/Users/adalbertoclaudioquiros/Documents/Code/UofG/PhD/Cancer_TMA_Generative'
 
-dataset = 'vgh'
-marker = 'he'
-labels = 'vgh_survival.csv'
+main_path = '/media/adalberto/Disk2/Cancer_TMA_Generative'
 
-dataset = 'nki'
-marker = 'he_temp'
-labels = 'nki_survival.csv'
+# dataset = 'nki'
+# marker = 'he'
+# labels = 'nki_survival.csv'
 
-for value in [224]:
-    with Preprocessor(patch_h=value, patch_w=value, n_channels=3, dataset=dataset, marker=marker,  labels=labels, overlap=True, save_img=True, project_path=main_path) as preprocessor:
-        preprocessor.run()
+marker = 'cathepsin_l'
+for dataset in ['stanford']:
+	labels = None
+	for value in [224]:
+	    with Preprocessor(patch_h=value, patch_w=value, n_channels=3, dataset=dataset, marker=marker,  labels=labels, overlap=True, save_img=True, threshold=240, project_path=main_path) as preprocessor:
+	        preprocessor.run()
