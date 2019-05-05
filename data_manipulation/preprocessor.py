@@ -5,7 +5,7 @@ import skimage.io
 import matplotlib.pyplot as plt
 
 class Preprocessor:
-    def __init__(self,  patch_h, patch_w, n_channels, dataset, marker,  labels=None, overlap=False, save_img=False, project_path=os.getcwd()):
+    def __init__(self,  patch_h, patch_w, n_channels, dataset, marker,  labels=None, overlap=False, save_img=False, threshold=215, project_path=os.getcwd()):
 
         # patches size
         self.patch_h = patch_h
@@ -29,6 +29,9 @@ class Preprocessor:
 
         # Loading labels.
         self.labels = labels
+
+        # Filtering for white percentage.
+        self.threshold = threshold
 
         if self.labels is not None:
             label_file = os.path.join(self.dataset_path, self.labels)
@@ -107,8 +110,8 @@ class Preprocessor:
 
     # Sets the threshold for the patch, if more than 30% white, discarted.
     @staticmethod
-    def satisfactory(img, threshold=215):
-        return ((img > threshold).sum(2) == 3).sum() / (img.shape[0] * img.shape[1]) < 0.3
+    def satisfactory(img, threshold=240):
+        return ((img > threshold).sum(2) == 3).sum() / (img.shape[0] * img.shape[1]) < .3
 
     # Per filename 
     def sample_patches(self, filename):
@@ -136,14 +139,14 @@ class Preprocessor:
                 # Gets patch, flipped horizontally but not rotated or normalized.
                 patch = utils.get_augmented_patch(self.dataset_path, filename, (None,) + pos + (0, 0), self.patch_h, self.patch_w, norm=False)
                 if display:
-                    print(filename, pos, self.satisfactory(patch))
+                    print(filename, pos, self.satisfactory(patch, self.threshold))
                     import matplotlib.pyplot as plt
                     plt.imshow(patch)
                     plt.show()
 
                 # Make sure that the patch wasn't created at this position before and that it goes above the threshold.
                 # For each of patch, 4 rotations and 2 flips per rotation.
-                if pos not in patches and self.satisfactory(patch):
+                if pos not in patches and self.satisfactory(patch, self.threshold):
                     patches.add(pos)
                     for rot in range(4):
                         for flip in range(2):
