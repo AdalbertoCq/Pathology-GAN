@@ -3,6 +3,7 @@ import platform
 
 if platform.system() == 'Linux':
     main_path = '/home/adalberto/Documents/Cancer_TMA_Generative'
+    main_path = '/media/adalberto/Disk2/Cancer_TMA_Generative'
 elif platform.system() == 'Darwin':
     main_path = '/Users/adalbertoclaudioquiros/Documents/Code/UofG/PhD/Cancer_TMA_Generative'
 
