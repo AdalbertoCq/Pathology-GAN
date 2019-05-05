@@ -3,7 +3,7 @@ import h5py
 
 
 class Dataset:
-    def __init__(self, hdf5_path, patch_h, patch_w, n_channels, batch_size, data_type, thresholds=()):
+    def __init__(self, hdf5_path, patch_h, patch_w, n_channels, batch_size, data_type, thresholds=(), labels=True):
 
         self.i = 0
         self.batch_size = batch_size
@@ -14,11 +14,12 @@ class Dataset:
         self.n_channels = n_channels
         self.data_type = data_type
 
+        self.labels_flag = labels
         self.hdf5_path = hdf5_path
         self.images, self.labels = self.get_hdf5_data()
 
-        self.size = len(self.labels)
-        self.iterations = len(self.labels)//self.batch_size + 1
+        self.size = len(self.images)
+        self.iterations = len(self.images)//self.batch_size + 1
 
     def __iter__(self):
         return self
@@ -33,7 +34,10 @@ class Dataset:
     def get_hdf5_data(self):
         hdf5_file = h5py.File(self.hdf5_path, 'r')
         images = hdf5_file['%s_img' % self.data_type]
-        labels = hdf5_file['%s_labels' % self.data_type]
+        if self.labels_flag:
+            labels = hdf5_file['%s_labels' % self.data_type]
+        else:
+            labels = list()
         return images, labels
 
     def set_pos(self, i):
