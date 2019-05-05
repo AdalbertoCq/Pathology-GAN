@@ -8,7 +8,6 @@ display = True
 def discriminator_resnet(images, layers, spectral, activation, reuse, init='xavier', regularizer=None, normalization=None, attention=None, down='downscale', label=None, label_t='cat', infoGAN=False, c_dim=None):
 	net = images
 	channels = [32, 64, 128, 256, 512, 1024]
-
 	if display:
 		print('DISCRIMINATOR INFORMATION:')
 		print('Channels: ', channels[:layers])
