@@ -2,6 +2,8 @@ import os
 import tensorflow as tf
 import numpy as np
 import h5py
+import random
+import shutil
 import tensorflow.contrib.gan as tfgan
 from tensorflow.keras.applications import inception_v3
 from tensorflow.keras.models import Model
@@ -11,9 +13,53 @@ from models.generative.utils import *
 
 
 # Method to generate random samples from a model, it also dumps a sprite image width them.
-def generate_samples(model, data, data_out_path, num_samples=5000, batches=50):
-	path = os.path.join(data_out_path, 'data_model_output')
-	path = os.path.join(path, 'Evaluation')
+def generate_samples_epoch(session, model, data_shape, epoch, evaluation_path, num_samples=5000, batches=50):
+	epoch_path = os.path.join(evaluation_path, 'epoch_%s' % epoch)
+	check_epoch_path = os.path.join(epoch_path, 'checkpoints')
+	checkpoint_path = os.path.join(evaluation_path, '../checkpoints')
+	
+	os.makedirs(epoch_path)
+	shutil.copytree(checkpoint_path, check_epoch_path)
+
+	if model.conditional:
+		runs = ['postive', 'negative']
+	else:
+		runs = ['unconditional']
+
+	for run in  runs:
+
+		hdf5_path = os.path.join(epoch_path, 'hdf5_epoch_%s_gen_images_%s.h5' % (epoch, run))
+		
+		# H5 File.
+		img_shape = [num_samples] + data_shape
+		hdf5_file = h5py.File(hdf5_path, mode='w')
+		storage = hdf5_file.create_dataset(name='images', shape=img_shape, dtype=np.float32)
+
+		ind = 0
+		while ind < num_samples:
+			if model.conditional:
+				label_input = model.label_input
+				if 'postive' in run:
+					labels = np.ones((batches, 1))
+				else:
+					labels = np.zeros((batches, 1))
+				labels = tf.keras.utils.to_categorical(y=labels, num_classes=2)
+			else:
+				label_input=None
+				labels=None
+			gen_samples, _ = show_generated(session=session, z_input=model.z_input, z_dim=model.z_dim, output_fake=model.output_gen, label_input=label_input, labels=labels, n_images=batches, show=False)
+
+			for i in range(batches):
+				if ind == num_samples:
+					break
+				storage[ind] = gen_samples[i, :, :, :]
+				ind += 1
+
+	return hdf5_path
+
+# Method to generate random samples from a model, it also dumps a sprite image width them.
+def generate_samples_from_checkpoint(model, data, data_out_path, num_samples=5000, batches=50):
+	path = os.path.join(data_out_path, 'evaluation')
 	path = os.path.join(path, model.model_name)
 	path = os.path.join(path, data.dataset)
 	path = os.path.join(path, data.marker)
@@ -45,15 +91,31 @@ def generate_samples(model, data, data_out_path, num_samples=5000, batches=50):
 
 			ind = 0
 			while ind < num_samples:
-				gen_samples, _ = show_generated(session=session, z_input=model.z_input, z_dim=model.z_dim, output_fake=model.output_gen, n_images=batches, show=False)
-				a = list(range(batches))
-				random.shuffle(a)
-				for ran in a[:20]:
+				if model.conditional:
+					label_input = model.label_input
+					labels = np.zeros((batches, 1))
+					labels = tf.keras.utils.to_categorical(y=labels, num_classes=2)
+				else:
+					label_input=None
+					labels=None
+				gen_samples, _ = show_generated(session=session, z_input=model.z_input, z_dim=model.z_dim, output_fake=model.output_gen, label_input=label_input, labels=labels, n_images=batches, show=False)
+
+				for i in range(batches):
 					if ind == num_samples:
 						break
-					storage[ind] = gen_samples[ran, :, :, :]
-					plt.imsave('%s/gen_%s.png' % (img_path, ind), gen_samples[ran, :, :, :])
+					storage[ind] = gen_samples[i, :, :, :]
+					plt.imsave('%s/gen_%s.png' % (img_path, ind), gen_samples[i, :, :, :])
 					ind += 1
+
+				# a = list(range(batches))
+				# random.shuffle(a)
+				# for ran in a[:20]:
+				# 	if ind == num_samples:
+				# 		break
+				# 	storage[ind] = gen_samples[ran, :, :, :]
+				# 	plt.imsave('%s/gen_%s.png' % (img_path, ind), gen_samples[ran, :, :, :])
+				# 	ind += 1
+
 		print(ind, 'Generated Images')
 	else:
 		print('H5 File already created.')
@@ -64,9 +126,8 @@ def generate_samples(model, data, data_out_path, num_samples=5000, batches=50):
 
 
 def real_samples(data, data_output_path, num_samples=5000):
-	path = os.path.join(data_output_path, 'data_model_output')
-	path = os.path.join(path, 'Evaluation')
-	path = os.path.join(path, 'Real')
+	path = os.path.join(data_output_path, 'evaluation')
+	path = os.path.join(path, 'real')
 	path = os.path.join(path, data.dataset)
 	path = os.path.join(path, data.marker)
 	res = 'h%s_w%s_n%s' % (data.training.patch_h, data.training.patch_w, data.training.n_channels)
@@ -93,14 +154,15 @@ def real_samples(data, data_output_path, num_samples=5000):
 		
 		print('H5 File Image Train.')
 		print('\tFile:', hdf5_path_test)
+
+		possible_samples = len(data.training.images)
+		random_samples = list(range(possible_samples))
+		random.shuffle(random_samples)
+
 		ind = 0
-		# Training hdf5
-		for batch_images, batch_labels in data.training:
-			if ind == num_samples:
-				break
-			ran = random.choice(list(range(batch_size)))
-			train_storage[ind] = batch_images[ran, :, :, :]
-			plt.imsave('%s/real_train_%s.png' % (img_train, ind), batch_images[ran, :, :, :])
+		for index in random_samples[:num_samples]:
+			train_storage[ind] = data.training.images[index]
+			plt.imsave('%s/real_train_%s.png' % (img_train, ind), data.training.images[index])
 			ind += 1
 		print('\tNumber of samples:', ind)
 
@@ -113,14 +175,15 @@ def real_samples(data, data_output_path, num_samples=5000):
 
 		print('H5 File Image Test')
 		print('\tFile:', hdf5_path_test)
+
+		possible_samples = len(data.test.images)
+		random_samples = list(range(possible_samples))
+		random.shuffle(random_samples)
+
 		ind = 0
-		# Test hdf5 
-		for batch_images, batch_labels in data.test:
-			if ind == num_samples:
-				break
-			ran = random.choice(list(range(batch_size)))
-			test_storage[ind] = batch_images[ran, :, :, :]
-			plt.imsave('%s/real_test_%s.png' % (img_test, ind), batch_images[ran, :, :, :])
+		for index in random_samples[:num_samples]:
+			test_storage[ind] = data.test.images[index]
+			plt.imsave('%s/real_test_%s.png' % (img_test, ind), data.test.images[index])
 			ind += 1
 		print('\tNumber of samples:', ind)
 
@@ -128,9 +191,8 @@ def real_samples(data, data_output_path, num_samples=5000):
 
 
 def real_samples_contaminated(data1, data2, percent_data1, data_output_path, num_samples=5000):
-	path = os.path.join(data_output_path, 'data_model_output')
-	path = os.path.join(path, 'Evaluation')
-	path = os.path.join(path, 'Real')
+	path = os.path.join(data_output_path, 'evaluation')
+	path = os.path.join(path, 'real')
 
 	dataset = '%s_%s_contaminated_%sperc' % (data1.dataset, data2.dataset, percent_data1)
 	path = os.path.join(path, dataset)
@@ -161,27 +223,33 @@ def real_samples_contaminated(data1, data2, percent_data1, data_output_path, num
 		
 		print('H5 File Image Train.')
 		print('\tFile:', hdf5_path_train)
-		ind = 0
 
 		limit_data1 = int(num_samples*percent_data1*1e-2)
-		# Training hdf5
-		for batch_images, batch_labels in data1.training:
-			if ind == limit_data1:
-				break
-			ran = random.choice(list(range(batch_size)))
-			train_storage[ind] = batch_images[ran, :, :, :]
-			plt.imsave('%s/real_train_%s.png' % (img_train, ind), batch_images[ran, :, :, :])
+		limit_data2 = num_samples - limit_data1
+		
+		possible_samples_1 = len(data1.training.images)
+		random_samples_1 = list(range(possible_samples_1))
+		random.shuffle(random_samples_1)
+
+		possible_samples_2 = len(data2.training.images)
+		random_samples_2 = list(range(possible_samples_2))
+		random.shuffle(random_samples_2)
+
+		ind = 0
+		for index in random_samples_1[:limit_data1]:
+			train_storage[ind] = data1.training.images[index]
+			plt.imsave('%s/real_train_%s.png' % (img_train, ind), data1.training.images[index])
 			ind += 1
 		ind1 = ind
-		print('\tNumber of samples Data1:', ind1)
-		for batch_images, batch_labels in data2.training:
-			if ind == num_samples:
-				break
-			ran = random.choice(list(range(batch_size)))
-			train_storage[ind] = batch_images[ran, :, :, :]
-			plt.imsave('%s/real_train_%s.png' % (img_train, ind), batch_images[ran, :, :, :])
+		print('\tNumber of samples Data1:', ind)
+
+		for index in random_samples_2[:limit_data2]:
+			train_storage[ind] = data2.training.images[index]
+			plt.imsave('%s/real_train_%s.png' % (img_train, ind), data2.training.images[index])
 			ind += 1
-		print('\tNumber of samples Data2:', ind-ind1)
+		print('\tNumber of samples Data1:', ind-ind1)
+		print('\tTotal Number of Samples:', ind)
+
 
 	if os.path.isfile(hdf5_path_test):
 		print('H5 File Image Test already created.')
@@ -192,26 +260,29 @@ def real_samples_contaminated(data1, data2, percent_data1, data_output_path, num
 
 		print('H5 File Image Test')
 		print('\tFile:', hdf5_path_test)
+		
+		possible_samples_1 = len(data1.test.images)
+		random_samples_1 = list(range(possible_samples_1))
+		random.shuffle(random_samples_1)
+
+		possible_samples_2 = len(data2.test.images)
+		random_samples_2 = list(range(possible_samples_2))
+		random.shuffle(random_samples_2)
+
 		ind = 0
-		# Test hdf5 
-		for batch_images, batch_labels in data1.test:
-			if ind == limit_data1:
-				break
-			ran = random.choice(list(range(batch_size)))
-			test_storage[ind] = batch_images[ran, :, :, :]
-			plt.imsave('%s/real_test_%s.png' % (img_test, ind), batch_images[ran, :, :, :])
+		for index in random_samples_1[:limit_data1]:
+			test_storage[ind] = data1.test.images[index]
+			plt.imsave('%s/real_test_%s.png' % (img_test, ind), data1.test.images[index])
 			ind += 1
 		ind1 = ind
-		print('\tNumber of samples Data1:', ind1)
-		# Test hdf5 
-		for batch_images, batch_labels in data2.test:
-			if ind == num_samples:
-				break
-			ran = random.choice(list(range(batch_size)))
-			test_storage[ind] = batch_images[ran, :, :, :]
-			plt.imsave('%s/real_test_%s.png' % (img_test, ind), batch_images[ran, :, :, :])
+		print('\tNumber of samples Data1:', ind)
+
+		for index in random_samples_2[:limit_data2]:
+			test_storage[ind] = data2.test.images[index]
+			plt.imsave('%s/real_test_%s.png' % (img_test, ind), data2.test.images[index])
 			ind += 1
-		print('\tNumber of samples Data2:', ind-ind1)
+		print('\tNumber of samples Data1:', ind-ind1)
+		print('\tTotal Number of Samples:', ind)
 
 	return hdf5_path_train, hdf5_path_test
 
@@ -301,6 +372,8 @@ def inception_tf_feature_activations(hdf5s, input_shape, batch_size, checkpoint_
 			ind = 0
 			for batch_num in range(batches):
 				batch_images = images_storage[batch_num*batch_size:(batch_num+1)*batch_size]
+				if 'test' in hdf5_path or 'train' in hdf5_path:
+					batch_images = batch_images/255.
 				activations = sess.run(out_incept_v3, {images_input: batch_images})
 				features_storage[batch_num*batch_size:(batch_num+1)*batch_size] = activations
 				ind += batch_size
