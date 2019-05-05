@@ -43,8 +43,8 @@ def get_top_nearest_neigbors(num_generated, nearneig, real_features_hdf5, gen_fe
         else:
             lin = list(range(int(gen_real_distances.shape[0])))
             random.shuffle(lin)
-            s_indices1 = np.zeros((nearneig,1), dtype=np.int8)
-            s_indices1[:, 0] = lin[:nearneig]
+            s_indices1 = np.zeros((num_generated,1), dtype=np.int8)
+            s_indices1[:, 0] = lin[:num_generated]
             
         s_indices = s_indices.eval()
         s_distances = s_distances.eval()
@@ -58,7 +58,7 @@ def get_top_nearest_neigbors(num_generated, nearneig, real_features_hdf5, gen_fe
             neighbors[ind] = list() 
             for j in range(nearneig):
                 neighbors[ind].append((s_indices[ind,j], s_distances[ind,j]))
-                real = real_img[s_indices[ind,j]]
+                real = real_img[s_indices[ind,j]]/255.
                 total = np.concatenate([total, real], axis=1)
             grid[i*height:(i+1)*height, :, :] = total
         plt.imshow(grid)
@@ -101,15 +101,13 @@ def find_top_nearest_neigbors(generated_list, nearneig, real_features_hdf5, gen_
             neighbors[ind] = list() 
             for j in range(nearneig):
                 neighbors[ind].append((s_indices[ind,j], s_distances[ind,j]))
-                real = real_img[s_indices[ind,j]]
+                real = real_img[s_indices[ind,j]]/255.
                 total = np.concatenate([total, real], axis=1)
             grid[i*height:(i+1)*height, :, :] = total
         plt.imshow(grid)
         if save_path is not None:
             plt.imsave(save_path, grid)
         return neighbors
-
-# def compare_contaminations():
 
 
 
