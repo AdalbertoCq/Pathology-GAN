@@ -11,3 +11,6 @@ playground.py
 process_data.py
 process_data.py
 sftp-config.json_temp
+notebooks/GAN_info.ipynb
+notebooks/GAN_play.ipynb
+sftp-config.json
