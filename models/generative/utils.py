@@ -13,12 +13,17 @@ import math
 
 
 # Simple function to plot number images.
-def plot_images(plt_num, images, dim, title=None, axis='off', row_n=None):
+def plot_images(plt_num, images, dim1=None, dim2=None, wspace=None, title=None, axis='off', plt_save=None):
     # Standard parameters for the plot.
     
-    mpl.rcParams['figure.figsize'] = dim, dim
-    mpl.rcParams['axes.titlepad'] = 20 
-    fig = plt.figure()
+    if dim1 is not None and dim2 is not None:
+        fig = plt.figure(figsize=(dim1, dim2))
+    else:
+        fig = plt.figure()
+
+    if wspace is not None:
+        plt.subplots_adjust(wspace=wspace)
+        
     if title is not None:
         fig.suptitle(title)
 
@@ -27,6 +32,8 @@ def plot_images(plt_num, images, dim, title=None, axis='off', row_n=None):
         img = images[i, :, :, :]
         plt.imshow(img)
         plt.axis(axis)
+    if plt_save is not None:
+        plt.savefig(plt_save)
     plt.show()
 
 
@@ -123,7 +130,7 @@ def setup_csvs(csvs, model, losses):
 
 # Setup output folder.
 def setup_output(show_epochs, epochs, data, n_images, z_dim, data_out_path, model_name, restore, save_img):
-
+    evaluation_path = os.path.join(data_out_path, 'evaluation')
     checkpoints_path = os.path.join(data_out_path, 'checkpoints')
     checkpoints = os.path.join(checkpoints_path, '%s.ckt' % model_name)
     gen_images_path = os.path.join(data_out_path, 'images')
@@ -137,7 +144,10 @@ def setup_output(show_epochs, epochs, data, n_images, z_dim, data_out_path, mode
     
     if os.path.isdir(gen_images_path):
          shutil.rmtree(gen_images_path)
+    if os.path.isdir(evaluation_path):
+         shutil.rmtree(evaluation_path)
     os.makedirs(gen_images_path)
+    os.makedirs(evaluation_path)
     
     if not restore:
         if os.path.isdir(checkpoints_path):
