@@ -1,10 +1,10 @@
 import tensorflow as tf
 
-
-def polinomial_kernel(x, y, gamma=1, coef=1, degree=3):
+def polinomial_kernel(x, y, gamma=1., coef=1, degree=3):
 	# Pair-wise dot product.
 	xy = dot_product(x, y)
-	xy_g = xy/float(gamma)
+	g = gamma/float(x.shape.as_list()[1])
+	xy_g = xy*g
 	kernel = tf.pow(xy_g + coef, degree)
 	return kernel
 
