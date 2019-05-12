@@ -7,6 +7,24 @@ from models.generative.normalization import *
 
 display = True
 
+
+def mapping_network(z_input, z_dim, layers, spectral, activation, normalization, init='xavier', regularizer=None):
+	if display:
+		print('MAPPING NETWORK INFORMATION:')
+		print('Layers:      ', layers)
+		print('Normalization: ', normalization)
+		print('Activation:    ', activation)
+		print()
+
+	with tf.variable_scope('mapping_network'):
+		net = z_input
+		for layer in range(layers):
+			net = dense(inputs=net, out_dim=z_dim, spectral=spectral, init=init, regularizer=regularizer, scope=layer)	
+		w_input = net
+
+	return w_input
+
+
 def generator_resnet(z_input, image_channels, layers, spectral, activation, reuse, is_train, normalization, init='xavier', regularizer=None, cond_label=None, attention=None, up='upscale', bigGAN=False):
 	channels = [32, 64, 128, 256, 512, 1024]
 	reversed_channel = list(reversed(channels[:layers]))
