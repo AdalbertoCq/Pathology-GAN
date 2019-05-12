@@ -10,6 +10,7 @@ from tensorflow.keras.models import Model
 from tensorflow.keras.layers import GlobalAveragePooling2D
 from tensorflow.python.keras import backend as K
 from models.generative.utils import *
+from data_manipulation.utils import *
 
 
 # Method to generate random samples from a model, it also dumps a sprite image width them.
@@ -55,7 +56,6 @@ def generate_samples_epoch(session, model, data_shape, epoch, evaluation_path, n
 				storage[ind] = gen_samples[i, :, :, :]
 				ind += 1
 
-	return hdf5_path
 
 # Method to generate random samples from a model, it also dumps a sprite image width them.
 def generate_samples_from_checkpoint(model, data, data_out_path, num_samples=5000, batches=50):
@@ -188,6 +188,127 @@ def real_samples(data, data_output_path, num_samples=5000):
 		print('\tNumber of samples:', ind)
 
 	return hdf5_path_train, hdf5_path_test
+
+
+def real_samples_cond(data, cond, data_output_path, num_samples=5000):
+	path = os.path.join(data_output_path, 'evaluation')
+	path = os.path.join(path, 'real')
+	path = os.path.join(path, data.dataset)
+	path = os.path.join(path, data.marker)
+	res = 'h%s_w%s_n%s' % (data.training.patch_h, data.training.patch_w, data.training.n_channels)
+	path = os.path.join(path, res)
+
+	if cond == 1:
+		name_1 = 'er_positive'
+		name_2 = 'er_negative'
+	elif cond == 0:
+		name_1 = 'survival_positive'
+		name_2 = 'survival_negative'
+
+	er_p_path = os.path.join(path, name_1)
+	er_n_path = os.path.join(path, name_2)
+
+	er_p_img_train = os.path.join(er_p_path, 'img_train')
+	er_p_img_test = os.path.join(er_p_path, 'img_test')
+	if not os.path.isdir(er_p_path):
+		os.makedirs(er_p_path)
+		os.makedirs(er_p_img_train)
+		os.makedirs(er_p_img_test)
+
+	hdf5_path_er_p_train = os.path.join(er_p_path, 'hdf5_%s_%s_images_train_real.h5' % (data.dataset, data.marker))
+	hdf5_path_er_p_test = os.path.join(er_p_path, 'hdf5_%s_%s_images_test_real.h5' % (data.dataset, data.marker))
+	
+
+	er_n_img_train = os.path.join(er_n_path, 'img_train')
+	er_n_img_test = os.path.join(er_n_path, 'img_test')
+	if not os.path.isdir(er_n_path):
+		os.makedirs(er_n_path)
+		os.makedirs(er_n_img_train)
+		os.makedirs(er_n_img_test)
+
+	hdf5_path_er_n_train = os.path.join(er_n_path, 'hdf5_%s_%s_images_train_real.h5' % (data.dataset, data.marker))
+	hdf5_path_er_n_test = os.path.join(er_n_path, 'hdf5_%s_%s_images_test_real.h5' % (data.dataset, data.marker))
+	
+	batch_size = data.training.batch_size
+	images_shape =  [num_samples] + data.test.shape[1:]
+
+	if os.path.isfile(hdf5_path_er_p_train) and os.path.isfile(hdf5_path_er_n_train):
+		print('H5 File Image Train already created.')
+		print('\tFile:', hdf5_path_er_p_train)
+		print('\tFile:', hdf5_path_er_n_train)
+	else:
+		hdf5_er_p_img_train_real_file = h5py.File(hdf5_path_er_p_train, mode='w')
+		hdf5_er_n_img_train_real_file = h5py.File(hdf5_path_er_n_train, mode='w')
+		er_p_train_storage = hdf5_er_p_img_train_real_file.create_dataset(name='images', shape=images_shape, dtype=np.float32)
+		er_n_train_storage = hdf5_er_n_img_train_real_file.create_dataset(name='images', shape=images_shape, dtype=np.float32)
+		
+		print('H5 File Image Train.')
+		print('\tFile:', hdf5_path_er_p_train)
+		print('\tFile:', hdf5_path_er_n_train)
+
+		possible_samples = len(data.training.images)
+		random_samples = list(range(possible_samples))
+		random.shuffle(random_samples)
+
+		ind_er_p = 0
+		ind_er_n = 0
+		for index in random_samples:
+			label =  data.training.labels[index][cond]
+			if cond == 0:
+				label = survival_5(label)
+			if label == 1. and ind_er_p < num_samples:
+				er_p_train_storage[ind_er_p] = data.training.images[index]	
+				plt.imsave('%s/real_train_%s.png' % (er_p_img_train, ind_er_p), data.training.images[index])
+				ind_er_p += 1
+			elif label == 0. and ind_er_n < num_samples:
+				er_n_train_storage[ind_er_n] = data.training.images[index]
+				plt.imsave('%s/real_train_%s.png' % (er_n_img_train, ind_er_n), data.training.images[index])
+				ind_er_n += 1
+			elif ind_er_p == num_samples-1 and ind_er_n == num_samples-1:
+				break
+			
+		print('\tNumber of samples %s:' % name_1, ind_er_p)
+		print('\tNumber of samples %s:' % name_2, ind_er_n)
+
+	if os.path.isfile(hdf5_path_er_p_test) and os.path.isfile(hdf5_path_er_n_test):
+		print('H5 File Image Test already created.')
+		print('\tFile:', hdf5_path_er_p_test)
+		print('\tFile:', hdf5_path_er_n_test)
+	else:
+		hdf5_er_p_img_test_real_file = h5py.File(hdf5_path_er_p_test, mode='w')
+		hdf5_er_n_img_test_real_file = h5py.File(hdf5_path_er_n_test, mode='w')
+		er_p_test_storage = hdf5_er_p_img_test_real_file.create_dataset(name='images', shape=images_shape, dtype=np.float32)
+		er_n_test_storage = hdf5_er_n_img_test_real_file.create_dataset(name='images', shape=images_shape, dtype=np.float32)
+
+		print('H5 File Image Test')
+		print('\tFile:', hdf5_path_er_p_test)
+		print('\tFile:', hdf5_path_er_n_test)
+
+		possible_samples = len(data.test.images)
+		random_samples = list(range(possible_samples))
+		random.shuffle(random_samples)
+
+		ind_er_p = 0
+		ind_er_n = 0
+		for index in random_samples:
+			label =  data.training.labels[index][cond]
+			if cond == 0:
+				label = survival_5(label)
+			if label == 1. and ind_er_p < num_samples:
+				er_p_test_storage[ind_er_p] = data.test.images[index]	
+				plt.imsave('%s/real_train_%s.png' % (er_p_img_test, ind_er_p), data.test.images[index])
+				ind_er_p += 1
+			elif label == 0. and ind_er_n < num_samples:
+				er_n_test_storage[ind_er_n] = data.test.images[index]
+				plt.imsave('%s/real_train_%s.png' % (er_n_img_test, ind_er_n), data.test.images[index])
+				ind_er_n += 1
+			elif ind_er_p == num_samples-1 and ind_er_n == num_samples-1:
+				break
+
+		print('\tNumber of samples %s:' % name_1, ind_er_p)
+		print('\tNumber of samples %s:' % name_2, ind_er_n)
+
+	return hdf5_path_er_p_train, hdf5_path_er_p_test, hdf5_path_er_n_train, hdf5_path_er_n_test
 
 
 def real_samples_contaminated(data1, data2, percent_data1, data_output_path, num_samples=5000):
@@ -346,7 +467,7 @@ def inception_feature_activations(hdf5s, input_shape, batch_size, checkpoint_pat
 			print('\tNumber of samples:', ind)
 
 
-def inception_tf_feature_activations(hdf5s, input_shape, batch_size, checkpoint_path=None):
+def inception_tf_feature_activations(hdf5s, input_shape, batch_size):
 	images_input = tf.placeholder(dtype=tf.float32, shape=[None] + input_shape, name='images')
 	images = 2*images_input
 	images -= 1
