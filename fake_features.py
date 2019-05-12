@@ -56,4 +56,4 @@ with tf.Graph().as_default():
     gen_hdf5_path = generate_samples_from_checkpoint(biggan, data, data_out_path=main_path, num_samples=5000, batches=50)
 
 with tf.Graph().as_default():
-    inception_tf_feature_activations(hdf5s=[gen_hdf5_path], input_shape=data.training.shape[1:], batch_size=50, checkpoint_path=None)
+    inception_tf_feature_activations(hdf5s=[gen_hdf5_path], input_shape=data.training.shape[1:], batch_size=50)
