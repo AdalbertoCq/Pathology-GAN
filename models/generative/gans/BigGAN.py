@@ -131,7 +131,6 @@ class BigGAN(GAN):
 						if save_img:
 							img_storage[run_epochs//show_epochs] = gen_samples
 							latent_storage[run_epochs//show_epochs] = sample_z
-					break
 
 					run_epochs += 1
 				data.training.reset()
