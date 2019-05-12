@@ -1,49 +1,62 @@
 library(CRImage)
-# library(imager)
 
-
-print('Opening image...')
-f = system.file("extdata", "exImg2.jpg", package="CRImage")
-f = "/Users/adalbertoclaudioquiros/Documents/Code/UofG/PhD/Cancer_TMA_Generative/CRImage/test/174___1_116_10_1.jpg"
-
-# Image is converted to grayscale and thresholded. Morphological opening is used to delete clutter and to smooth the shapes of cells.
-# Watershed algorithm is used to separate clustered cells.
-# maxShape = Maximum shape of cell nuclei. Segmented nuclei which exceed this value will be thresholded and segmented again.
-# minShape = Minimum size of cell nuclei. Cell nuclei which fall below this value will be deleted.
-# failureRegion = Defines when artifacts in the image should be deleted. Dark regions which exceed this value will be deleted.
-# threshold = 
-# numWindows = 
-# segmentationValues => [1] Orignal Image, [2] Segmented image, [3] Features, which were calculated for the segmented objects
-# print('Starting segmentation...')
-# segmentationValues = segmentImage(filename=f, maxShape=800, minShape=40, failureRegion=2000, threshold='otsu', numWindows=4)
-# display(segmentationValues[[3]]) 
-
-# maxShape = Maximum shape of cell nuclei. Segmented nuclei which exceed this value will be thresholded and segmented again.
-# minShape = Minimum size of cell nuclei. Cell nuclei which fall below this value will be deleted.
-# failureRegion = Defines when artifacts in the image should be deleted. Dark regions which exceed this value will be deleted.
-# traingValues => [1] Image in which every segmented cell is numbered, [2] table with features for every cell.
-#
-# To create a training set, class values for the cells have to be inserted in the column "class"
-# f = system.file("extdata", "exImg.jpg", package="CRImage")
-# print('Creating a Training Set...')
-# trainingValues = createTrainingSet(filename=f, maxShape=800, minShape=40, failureRegion=2000)
-# write.table(trainingData, file="/home/adalberto/Documents/Cancer_TMA_Generative/CRImage", sept="\t", rownames=F)
-
-
+# Classifier definition.
 t = system.file("extdata", "trainingData.txt", package="CRImage")
 trainingData = read.table(t, header=TRUE)
 classifierValues = createClassifier(trainingData) 
 classifier = classifierValues[[1]]
 
-# f = "/Users/adalbertoclaudioquiros/Documents/Code/UofG/PhD/Cancer_TMA_Generative/CRImage/test/fake.jpg"
-# f = "/Users/adalbertoclaudioquiros/Documents/Code/UofG/PhD/Cancer_TMA_Generative/CRImage/test/real.jpg"
-classValues=classifyCells(classifier, filename=f, KS=TRUE, maxShape=800, minShape=40, failureRegion=2000)
-print(classValues)
-display(classValues[[2]])
+# REAL
+paths = vector('list', length=5)
+paths[[1]] = '/media/adalberto/Disk2/Cancer_TMA_Generative/evaluation/real/nki_vgh/he/new/h224_w224_n3/'
+paths[[2]] = '/media/adalberto/Disk2/Cancer_TMA_Generative/evaluation/real/nki_vgh/he/h224_w224_n3/er_positive/'
+paths[[3]] = '/media/adalberto/Disk2/Cancer_TMA_Generative/evaluation/real/nki_vgh/he/h224_w224_n3/er_negative/'
+paths[[4]] = '/media/adalberto/Disk2/Cancer_TMA_Generative/evaluation/real/nki_vgh/he/h224_w224_n3/survival_positive/'
+paths[[5]] = '/media/adalberto/Disk2/Cancer_TMA_Generative/evaluation/real/nki_vgh/he/h224_w224_n3/survival_negative/'
 
-# cellularity = calculateCellularity(classifier=classifier, filename=f, KS=TRUE, maxShape=800, minShape=40, failureRegion=2000, classifyStructures=FALSE, 
-									# cancerIdentifier="1", numDensityWindows=2, colors=c("green", "red"))
-#print(cellularity)
-# display(cellularity[[2]])
-# display(cellularity[[3]])
+for (base_path in paths) {
+	print(base_path)
+	file_name_base = paste(base_path, 'img_train/real_train_', sep='')
+	c_cells = vector('list', length=5000)
+	for (index in seq(1, 5000, by=1)) {
+		file_name = paste(file_name_base, index-1, sep='')
+		file_name = paste(file_name, '.png', sep='')
+		cellularity = calculateCellularity(classifier=classifier, filename=file_name, KS=TRUE, maxShape=800, minShape=40, failureRegion=2000, classifyStructures=FALSE, cancerIdentifier="c", numDensityWindows=2, colors=c("green","red"))
+		c_cells[[index]] = cellularity[[1]]
+	}
 
+	c_cells_path = paste(base_path, 'crimage_train.txt', sep='')
+
+	file.remove(c_cells_path)
+
+	lapply(c_cells, write, c_cells_path, append=TRUE)
+
+}
+
+
+# GENERATED
+paths = vector('list', length=5)
+paths[[1]] = '/media/adalberto/Disk2/Cancer_TMA_Generative/evaluation/BigGAN/vgh_nki/he/unconditional/h224_w224_n3_50_Epoch/'
+paths[[2]] = '/media/adalberto/Disk2/Cancer_TMA_Generative/evaluation/BigGAN/vgh_nki/he/conditional_ER/h224_w224_n3_conditonal_ER_positive_45_Epochs/'
+paths[[3]] = '/media/adalberto/Disk2/Cancer_TMA_Generative/evaluation/BigGAN/vgh_nki/he/conditional_ER/h224_w224_n3_conditonal_ER_negative_45_Epochs/'
+paths[[4]] = '/media/adalberto/Disk2/Cancer_TMA_Generative/evaluation/BigGAN/vgh_nki/he/conditional_survival/h224_w224_n3_conditonal_survival_positive_60_Epochs/'
+paths[[5]] = '/media/adalberto/Disk2/Cancer_TMA_Generative/evaluation/BigGAN/vgh_nki/he/conditional_survival/h224_w224_n3_conditonal_survival_negative_60_Epochs/'
+
+for (base_path in paths) {
+	print(base_path)
+	file_name_base = paste(base_path, 'generated_images/gen_', sep='')
+	c_cells = vector('list', length=5000)
+	for (index in seq(1, 5000, by=1)) {
+		file_name = paste(file_name_base, index-1, sep='')
+		file_name = paste(file_name, '.png', sep='')
+		cellularity = calculateCellularity(classifier=classifier, filename=file_name, KS=TRUE, maxShape=800, minShape=40, failureRegion=2000, classifyStructures=FALSE, cancerIdentifier="c", numDensityWindows=2, colors=c("green","red"))
+		c_cells[[index]] = cellularity[[1]]
+	}
+
+	c_cells_path = paste(base_path, 'crimage_train.txt', sep='')
+
+	file.remove(c_cells_path)
+
+	lapply(c_cells, write, c_cells_path, append=TRUE)
+
+}
