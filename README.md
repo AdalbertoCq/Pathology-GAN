@@ -1,5 +1,17 @@
 # Pathology-GAN
 
+## Demo Materials:
+* Fake images with the smallest distance to real: For each row, the first image is a generated one, the remaining seven images are close Inception-V1 neighbors of the fake image:
+<p align="center">
+  <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/unconditional/neigbor_selected.png" width="400">
+</p>
+
+* Hand-selected fake images: For each row, the first image is a generated one, the remaining seven images are close Inception-V1 neighbors of the fake image:
+<p align="center">
+  <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/unconditional/neighbors_min_dist.png" width="400">
+</p>
+
+
 ## Python Enviroment:
 ```
 h5py                    2.9.0
