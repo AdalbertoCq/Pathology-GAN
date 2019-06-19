@@ -19,9 +19,8 @@ parser.add_argument('--epochs', dest='epochs', help='Number epochs to run: defau
 parser.add_argument('--batch_size', dest='batch_size', help='Batch size, default size is 64.')
 args = parser.parse_args()
 epochs = args.epochs
+batch_size = args.batch_size
 pathgan_type = args.type
-print(epochs)
-print(pathgan_type)
 
 if pathgan_type == 'unconditional':
 	conditional = False
@@ -30,11 +29,11 @@ if pathgan_type == 'unconditional':
 elif pathgan_type == 'er':
 	conditional = True
 	label_dim = 1
-	label_t = 'cat'
+	label_t = 'mlp'
 elif pathgan_type == 'survival':
 	conditional = True
 	label_dim = 0
-	label_t = 'cat'
+	label_t = 'mlp'
 else:
 	print('The available PathologyGAN options are:')
 	print('\tunconditional')
