@@ -3,7 +3,7 @@ from data_manipulation.dataset import Dataset
 
 
 class Data:
-    def __init__(self, dataset, marker, patch_h, patch_w, n_channels, batch_size, project_path=os.getcwd(), thresholds=(), labels=True):
+    def __init__(self, dataset, marker, patch_h, patch_w, n_channels, batch_size, project_path=os.getcwd(), thresholds=(), labels=True, empty=False):
 
         # Directories and file name handling.
         self.dataset = dataset
@@ -18,6 +18,6 @@ class Data:
         self.hdf5_test = os.path.join(self.pathes_path, 'hdf5_%s_test.h5' % self.dataset_name)
 
         # Train dataset
-        self.training = Dataset(self.hdf5_train, patch_h, patch_w, n_channels, batch_size=batch_size, data_type='train', thresholds=thresholds, labels=labels)
+        self.training = Dataset(self.hdf5_train, patch_h, patch_w, n_channels, batch_size=batch_size, data_type='train', thresholds=thresholds, labels=labels, empty=empty)
         # Test dataset
-        self.test = Dataset(self.hdf5_test, patch_h, patch_w, n_channels, batch_size=batch_size, data_type='test', thresholds=thresholds, labels=labels)
+        self.test = Dataset(self.hdf5_test, patch_h, patch_w, n_channels, batch_size=batch_size, data_type='test', thresholds=thresholds, labels=labels, empty=empty)

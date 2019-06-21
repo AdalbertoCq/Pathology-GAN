@@ -72,21 +72,23 @@ gp_coeff = .5
 use_bn = False
 loss_type = 'relativistic gradient penalty'
 
-data = Data(dataset=dataset, marker=marker, patch_h=image_height, patch_w=image_width, n_channels=image_channels, batch_size=batch_size)
+data = Data(dataset=dataset, marker=marker, patch_h=image_height, patch_w=image_width, n_channels=image_channels, batch_size=batch_size, empty=True)
+
+
 
 with tf.Graph().as_default():
     biggan = BigGAN(data=data, z_dim=z_dim, use_bn=use_bn, alpha=alpha, beta_1=beta_1, learning_rate_g=learning_rate_g, learning_rate_d=learning_rate_d, beta_2=beta_2,
-                    n_critic=n_critic, gp_coeff=gp_coeff, conditional=conditional, label_dim=label_dim, label_t=label_t, loss_type=loss_type)
+                    n_critic=n_critic, gp_coeff=gp_coeff, conditional=conditional, label_dim=label_dim, label_t=label_t, loss_type=loss_type, model_name='PathologyGAN')
     if pathgan_type == 'unconditional':
         gen_hdf5_path = generate_samples_from_checkpoint(biggan, data, data_out_path=main_path, checkpoint=checkpoint, label=label_dim, num_samples=num_samples, batches=batch_size)
         shutil.move('%s/evaluation/%s/vgh_nki/he/h224_w224_n3' % (main_path, biggan.model_name), '%s/evaluation/%s/vgh_nki/he/h224_w224_n3_unconditional' % (main_path, biggan.model_name))
 
-    elif pathgan_type == 'er' or pathgan_type == 'survival':
-        # Negative
-        gen_hdf5_path = generate_samples_from_checkpoint(biggan, data, data_out_path=main_path, checkpoint=checkpoint, label=0, num_samples=num_samples, batches=batch_size)
-        shutil.move('%s/evaluation/%s/vgh_nki/he/h224_w224_n3' % (main_path, biggan.model_name), '%s/evaluation/%s/vgh_nki/he/h224_w224_n3_%s_negative' % (main_path, biggan.model_name, pathgan_type))
-        # Positive
-        gen_hdf5_path = generate_samples_from_checkpoint(biggan, data, data_out_path=main_path, checkpoint=checkpoint, label=1, num_samples=num_samples, batches=batch_size)
-        shutil.move('%s/evaluation/%s/vgh_nki/he/h224_w224_n3' % (main_path, biggan.model_name), '%s/evaluation/%s/vgh_nki/he/h224_w224_n3_%s_positive' % (main_path, biggan.model_name, pathgan_type))
+#     elif pathgan_type == 'er' or pathgan_type == 'survival':
+#         # Negative
+#         gen_hdf5_path = generate_samples_from_checkpoint(biggan, data, data_out_path=main_path, checkpoint=checkpoint, label=0, num_samples=num_samples, batches=batch_size)
+#         shutil.move('%s/evaluation/%s/vgh_nki/he/h224_w224_n3' % (main_path, biggan.model_name), '%s/evaluation/%s/vgh_nki/he/h224_w224_n3_%s_negative' % (main_path, biggan.model_name, pathgan_type))
+#         # Positive
+#         gen_hdf5_path = generate_samples_from_checkpoint(biggan, data, data_out_path=main_path, checkpoint=checkpoint, label=1, num_samples=num_samples, batches=batch_size)
+#         shutil.move('%s/evaluation/%s/vgh_nki/he/h224_w224_n3' % (main_path, biggan.model_name), '%s/evaluation/%s/vgh_nki/he/h224_w224_n3_%s_positive' % (main_path, biggan.model_name, pathgan_type))
 
 
