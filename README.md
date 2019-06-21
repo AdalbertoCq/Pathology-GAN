@@ -51,6 +51,14 @@ This is a sample of an original TMA image:
   <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/original_tma.jpg" width="400">
 </p>
 
+## Pre-trained Models:
+
+You can find pre-trained weights for the three different models here:
+* [Unconditional](https://figshare.com/s/0a311b5418f21ab2ebd4)
+* [Estrogen Receptor](https://figshare.com/s/01c98df16f9c1c01fa3e)
+* [Survival Time](https://figshare.com/s/fef199018a1b28ebcd28)
+
+
 ## Python Enviroment:
 ```
 h5py                    2.9.0
