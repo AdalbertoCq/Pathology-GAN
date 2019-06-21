@@ -44,7 +44,7 @@ We use these Netherlands Cancer Institute (NKI) cohort and the Vancouver General
 
 \[2] Robert J. Marinelli, Kelli Montgomery, Chih Long Liu, Nigam H. Shah, Wijan Prapong, Michael Nitzberg, Zachariah K. Zachariah, Gavin J. Sherlock, Yasodha Natkunam, Robert B. West, Matt van de Rijn, Patrick O. Brown, and Catherine A. Ball. The Stanford Tissue Microarray Database. Nucleic Acids Res 2008 36(Database issue): D871-7. Epub 2007 Nov 7 doi:10.1093/nar/gkm861.
 
-You can find a pre-processed HDF5 file with patches of 224x224x3 resolution [here](), each of the patches also contains labeling information of the estrogen receptor status and survival time.
+You can find a pre-processed HDF5 file with patches of 224x224x3 resolution [here](https://drive.google.com/open?id=1LpgW85CVA48C8LnpmsDMdHqeCGHKsAxw), each of the patches also contains labeling information of the estrogen receptor status and survival time.
 
 This is a sample of an original TMA image:
 <p align="center">
@@ -94,7 +94,7 @@ python                  3.6.7
 ```
 
 ## Training PathologyGAN:
-You can find a pre-processed HDF5 file with patches of 224x224x3 resolution [here](), each of the patches also contains labeling information of the estrogen receptor status and survival time.
+You can find a pre-processed HDF5 file with patches of 224x224x3 resolution [here](https://drive.google.com/open?id=1LpgW85CVA48C8LnpmsDMdHqeCGHKsAxw), each of the patches also contains labeling information of the estrogen receptor status and survival time.
 
 Place the 'vgh_nki' under the 'dataset' folder in the main PathologyGAN path.
 
