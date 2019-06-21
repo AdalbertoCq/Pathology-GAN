@@ -58,6 +58,22 @@ You can find pre-trained weights for the three different models here:
 * [Estrogen Receptor](https://figshare.com/s/01c98df16f9c1c01fa3e)
 * [Survival Time](https://figshare.com/s/fef199018a1b28ebcd28)
 
+## Python Enviroment:
+```
+h5py                    2.9.0
+numpy                   1.16.1
+pandas                  0.24.1
+scikit-image            0.14.2
+scikit-learn            0.20.2
+scipy                   1.2.0
+seaborn                 0.9.0
+sklearn                 0.0
+tensorboard             1.12.2
+tensorflow              1.12.0
+tensorflow-probability  0.5.0
+python                  3.6.7
+```
+
 ## Load model and generate images:
 
 * Unconditional:
@@ -75,22 +91,6 @@ python3 generate_fake_samples.py --type er --checkpoint ./PathologyGAN_er_weight
   * Find the images in the 'evaluation' folder: survival_positive(>5years)/survival_negative(<=5years).
 ```
 python3 generate_fake_samples.py --type survival --checkpoint ./PathologyGAN_survival_weights/PathologyGAN.ckt --num_samples 50
-```
-
-## Python Enviroment:
-```
-h5py                    2.9.0
-numpy                   1.16.1
-pandas                  0.24.1
-scikit-image            0.14.2
-scikit-learn            0.20.2
-scipy                   1.2.0
-seaborn                 0.9.0
-sklearn                 0.0
-tensorboard             1.12.2
-tensorflow              1.12.0
-tensorflow-probability  0.5.0
-python                  3.6.7
 ```
 
 ## Training PathologyGAN:
