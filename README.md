@@ -58,7 +58,9 @@ You can find pre-trained weights for the three different models here:
 * [Estrogen Receptor](https://figshare.com/s/01c98df16f9c1c01fa3e)
 * [Survival Time](https://figshare.com/s/fef199018a1b28ebcd28)
 
-
+## Load model and generate images:
+```
+```
 ## Python Enviroment:
 ```
 h5py                    2.9.0
