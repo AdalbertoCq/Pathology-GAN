@@ -88,6 +88,6 @@ data = Data(dataset=dataset, marker=marker, patch_h=image_height, patch_w=image_
 
 with tf.Graph().as_default():
     biggan = BigGAN(data=data, z_dim=z_dim, layers=layers, use_bn=use_bn, alpha=alpha, beta_1=beta_1, learning_rate_g=learning_rate_g, learning_rate_d=learning_rate_d, beta_2=beta_2,
-                  	n_critic=n_critic, gp_coeff=gp_coeff, conditional=conditional, label_dim=label_dim, label_t=label_t, loss_type=loss_type)
+                  	n_critic=n_critic, gp_coeff=gp_coeff, conditional=conditional, label_dim=label_dim, label_t=label_t, loss_type=loss_type, model_name='PathologyGAN')
 
     losses = biggan.train(epochs, data_out_path, data, restore, n_images=10, show_epochs=None)
