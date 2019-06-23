@@ -94,9 +94,9 @@ python3 generate_fake_samples.py --type survival --checkpoint ./PathologyGAN_sur
 ```
 
 ## Training PathologyGAN:
-You can find a pre-processed HDF5 file with patches of 224x224x3 resolution [here](https://drive.google.com/open?id=1LpgW85CVA48C8LnpmsDMdHqeCGHKsAxw), each of the patches also contains labeling information of the estrogen receptor status and survival time.
+You can find a pre-processed HDF5 file with patches of 224x224x3 resolution [here](https://drive.google.com/open?id=1LpgW85CVA48C8LnpmsDMdHqeCGHKsAxw), each of the patches also contains labeling information of the estrogen receptor status and survival time. Place the 'vgh_nki' under the 'dataset' folder in the main PathologyGAN path.
 
-Place the 'vgh_nki' under the 'dataset' folder in the main PathologyGAN path.
+Each model was trained on an NVIDIA Titan Xp 12 GB for 45 epochs, approximately 72 hours.
 
 ```
 usage: run_gans.py [-h] --type TYPE [--epochs EPOCHS]
