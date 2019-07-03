@@ -83,12 +83,12 @@ with tf.Graph().as_default():
         gen_hdf5_path = generate_samples_from_checkpoint(biggan, data, data_out_path=main_path, checkpoint=checkpoint, label=label_dim, num_samples=num_samples, batches=batch_size)
         shutil.move('%s/evaluation/%s/vgh_nki/he/h224_w224_n3' % (main_path, biggan.model_name), '%s/evaluation/%s/vgh_nki/he/h224_w224_n3_unconditional' % (main_path, biggan.model_name))
 
-#     elif pathgan_type == 'er' or pathgan_type == 'survival':
-#         # Negative
-#         gen_hdf5_path = generate_samples_from_checkpoint(biggan, data, data_out_path=main_path, checkpoint=checkpoint, label=0, num_samples=num_samples, batches=batch_size)
-#         shutil.move('%s/evaluation/%s/vgh_nki/he/h224_w224_n3' % (main_path, biggan.model_name), '%s/evaluation/%s/vgh_nki/he/h224_w224_n3_%s_negative' % (main_path, biggan.model_name, pathgan_type))
-#         # Positive
-#         gen_hdf5_path = generate_samples_from_checkpoint(biggan, data, data_out_path=main_path, checkpoint=checkpoint, label=1, num_samples=num_samples, batches=batch_size)
-#         shutil.move('%s/evaluation/%s/vgh_nki/he/h224_w224_n3' % (main_path, biggan.model_name), '%s/evaluation/%s/vgh_nki/he/h224_w224_n3_%s_positive' % (main_path, biggan.model_name, pathgan_type))
+    elif pathgan_type == 'er' or pathgan_type == 'survival':
+        # Negative
+        gen_hdf5_path = generate_samples_from_checkpoint(biggan, data, data_out_path=main_path, checkpoint=checkpoint, label=0, num_samples=num_samples, batches=batch_size)
+        shutil.move('%s/evaluation/%s/vgh_nki/he/h224_w224_n3' % (main_path, biggan.model_name), '%s/evaluation/%s/vgh_nki/he/h224_w224_n3_%s_negative' % (main_path, biggan.model_name, pathgan_type))
+        # Positive
+        gen_hdf5_path = generate_samples_from_checkpoint(biggan, data, data_out_path=main_path, checkpoint=checkpoint, label=1, num_samples=num_samples, batches=batch_size)
+        shutil.move('%s/evaluation/%s/vgh_nki/he/h224_w224_n3' % (main_path, biggan.model_name), '%s/evaluation/%s/vgh_nki/he/h224_w224_n3_%s_positive' % (main_path, biggan.model_name, pathgan_type))
 
 
