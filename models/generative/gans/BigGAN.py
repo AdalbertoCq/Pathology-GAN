@@ -58,7 +58,8 @@ class BigGAN(GAN):
 						 conditional=conditional, num_classes=num_classes, label_t=label_t, n_critic=n_critic, init=init, loss_type=loss_type, model_name=model_name)
 
 	def discriminator(self, images, reuse, init, label_input=None):
-		output, logits = discriminator_resnet(images=images, layers=self.layers, spectral=True, activation=leakyReLU, reuse=reuse, attention=28, init=init, regularizer=orthogonal_reg(self.regularizer_scale), label=label_input)
+		output, logits = discriminator_resnet(images=images, layers=self.layers, spectral=True, activation=leakyReLU, reuse=reuse, attention=28, init=init, regularizer=orthogonal_reg(self.regularizer_scale), 
+											  label=label_input, label_t=self.label_t)
 		return output, logits
 
 	def generator(self, z_input, reuse, is_train, init, label_input=None):
@@ -95,7 +96,6 @@ class BigGAN(GAN):
 			for epoch in range(1, epochs+1):
 				saver.save(sess=session, save_path=checkpoints)
 				for batch_images, batch_labels in data.training:
-
 					# Inputs.
 					z_batch = np.random.uniform(low=-1., high=1., size=(self.batch_size, self.z_dim))               
 					feed_dict = {self.z_input:z_batch, self.real_images:batch_images, self.learning_rate_input_g: self.learning_rate_g, self.learning_rate_input_d: self.learning_rate_d}
@@ -127,10 +127,8 @@ class BigGAN(GAN):
 							update_csv(model=self, file=csvs[2], variables=jac_sign_values, epoch=epoch, iteration=run_epochs)
 
 					if show_epochs is not None and run_epochs % show_epochs == 0:
-						gen_samples, sample_z = show_generated(session=session, z_input=self.z_input, z_dim=self.z_dim, label_input=self.label_input, labels=batch_labels, output_fake=self.output_gen, n_images=n_images, dim=30)
-						if save_img:
-							img_storage[run_epochs//show_epochs] = gen_samples
-							latent_storage[run_epochs//show_epochs] = sample_z
+						gen_samples, _ = show_generated(session=session, z_input=self.z_input, z_dim=self.z_dim, label_input=self.label_input, labels=batch_labels, output_fake=self.output_gen, n_images=25, show=False)
+						write_sprite_image(filename=os.path.join(data_out_path, 'images/gen_samples_iter_%s.png' % run_epochs), data=gen_samples, metadata=False)
 
 					run_epochs += 1
 				data.training.reset()
@@ -138,5 +136,5 @@ class BigGAN(GAN):
 				gen_samples, _ = show_generated(session=session, z_input=self.z_input, z_dim=self.z_dim, label_input=self.label_input, labels=batch_labels, output_fake=self.output_gen, n_images=25, show=False)
 				write_sprite_image(filename=os.path.join(data_out_path, 'images/gen_samples_epoch_%s.png' % epoch), data=gen_samples, metadata=False)
 
-				if evaluation is not None and epoch >= evaluation:
-					generate_samples_epoch(session=session, model=self, data_shape=data.test.shape[1:], epoch=epoch, evaluation_path=os.path.join(data_out_path, 'evaluation'))
+				# if evaluation is not None and epoch >= evaluation:
+					# generate_samples_epoch(session=session, model=self, data_shape=data.test.shape[1:], epoch=epoch, evaluation_path=os.path.join(data_out_path, 'evaluation'))

@@ -19,7 +19,8 @@ def mapping_network(z_input, z_dim, layers, spectral, activation, normalization,
 	with tf.variable_scope('mapping_network'):
 		net = z_input
 		for layer in range(layers):
-			net = dense(inputs=net, out_dim=z_dim, spectral=spectral, init=init, regularizer=regularizer, scope=layer)	
+			net = normalization(inputs=net, training=True, c=None, spectral=None, scope=layer)
+			net = dense(inputs=net, out_dim=z_dim, spectral=spectral, init=init, regularizer=regularizer, scope=layer)
 		w_input = net
 
 	return w_input
@@ -57,7 +58,11 @@ def generator_resnet(z_input, image_channels, layers, spectral, activation, reus
 		else:
 			z_input_block = z_input
 			label = z_input
-		if cond_label is not None: label = tf.concat([cond_label, label], axis=-1)
+		if cond_label is not None: 
+			if 'training_gate' in cond_label.name:
+				label = cond_label
+			else:
+				label = tf.concat([cond_label, label], axis=-1)
 
 		# Dense.			
 		net = dense(inputs=z_input_block, out_dim=1024, spectral=spectral, init=init, regularizer=regularizer, scope=1)			
@@ -68,7 +73,11 @@ def generator_resnet(z_input, image_channels, layers, spectral, activation, reus
 
 		if bigGAN: label = z_splits[2]
 		else: label = z_input
-		if cond_label is not None: label = tf.concat([cond_label, label], axis=-1)
+		if cond_label is not None: 
+			if 'training_gate' in cond_label.name:
+				label = cond_label
+			else:
+				label = tf.concat([cond_label, label], axis=-1)
 
 		# Dense.
 		net = dense(inputs=net, out_dim=256*7*7, spectral=spectral, init=init, regularizer=regularizer, scope=2)				
@@ -84,7 +93,11 @@ def generator_resnet(z_input, image_channels, layers, spectral, activation, reus
 
 			if bigGAN: label = z_splits[3+layer] 
 			else: label = z_input
-			if cond_label is not None: label = tf.concat([cond_label, label], axis=-1)
+			if cond_label is not None: 
+				if 'training_gate' in cond_label.name:
+					label = cond_label
+				else:
+					label = tf.concat([cond_label, label], axis=-1)
 
 			# ResBlock.
 			net = residual_block(inputs=net, filter_size=3, stride=1, padding='SAME', scope=layer, is_training=is_train, spectral=spectral, init=init, regularizer=regularizer, 

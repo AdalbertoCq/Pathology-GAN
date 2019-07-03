@@ -58,15 +58,12 @@ def generate_samples_epoch(session, model, data_shape, epoch, evaluation_path, n
 
 
 # Method to generate random samples from a model, it also dumps a sprite image width them.
-def generate_samples_from_checkpoint(model, data, data_out_path, num_samples=5000, batches=50):
+def generate_samples_from_checkpoint(model, data, data_out_path, checkpoint, label=0, num_samples=5000, batches=50):
 	path = os.path.join(data_out_path, 'evaluation')
 	path = os.path.join(path, model.model_name)
 	path = os.path.join(path, data.dataset)
 	path = os.path.join(path, data.marker)
 	res = 'h%s_w%s_n%s' % tuple(data.test.shape[1:])
-	checkpoint_path = os.path.join(data_out_path, 'data_model_output')
-	checkpoint_path = os.path.join(checkpoint_path, model.model_name)
-	checkpoint_path = os.path.join(checkpoint_path, res)
 	path = os.path.join(path, res)
 	img_path = os.path.join(path, 'generated_images')
 	if not os.path.isdir(path):
@@ -86,14 +83,16 @@ def generate_samples_from_checkpoint(model, data, data_out_path, num_samples=500
 		with tf.Session() as session:
 			# Initializer and restoring model.
 			session.run(tf.global_variables_initializer())
-			check = get_checkpoint(checkpoint_path)
-			saver.restore(session, check)
+			saver.restore(session, checkpoint)
 
 			ind = 0
 			while ind < num_samples:
 				if model.conditional:
 					label_input = model.label_input
-					labels = np.zeros((batches, 1))
+					if label == 0:
+						labels = np.zeros((batches, 1))
+					else:
+						labels = np.ones((batches, 1))
 					labels = tf.keras.utils.to_categorical(y=labels, num_classes=2)
 				else:
 					label_input=None
@@ -106,15 +105,6 @@ def generate_samples_from_checkpoint(model, data, data_out_path, num_samples=500
 					storage[ind] = gen_samples[i, :, :, :]
 					plt.imsave('%s/gen_%s.png' % (img_path, ind), gen_samples[i, :, :, :])
 					ind += 1
-
-				# a = list(range(batches))
-				# random.shuffle(a)
-				# for ran in a[:20]:
-				# 	if ind == num_samples:
-				# 		break
-				# 	storage[ind] = gen_samples[ran, :, :, :]
-				# 	plt.imsave('%s/gen_%s.png' % (img_path, ind), gen_samples[ran, :, :, :])
-				# 	ind += 1
 
 		print(ind, 'Generated Images')
 	else:
@@ -296,11 +286,11 @@ def real_samples_cond(data, cond, data_output_path, num_samples=5000):
 				label = survival_5(label)
 			if label == 1. and ind_er_p < num_samples:
 				er_p_test_storage[ind_er_p] = data.test.images[index]	
-				plt.imsave('%s/real_train_%s.png' % (er_p_img_test, ind_er_p), data.test.images[index])
+				plt.imsave('%s/real_test_%s.png' % (er_p_img_test, ind_er_p), data.test.images[index])
 				ind_er_p += 1
 			elif label == 0. and ind_er_n < num_samples:
 				er_n_test_storage[ind_er_n] = data.test.images[index]
-				plt.imsave('%s/real_train_%s.png' % (er_n_img_test, ind_er_n), data.test.images[index])
+				plt.imsave('%s/real_test_%s.png' % (er_n_img_test, ind_er_n), data.test.images[index])
 				ind_er_n += 1
 			elif ind_er_p == num_samples-1 and ind_er_n == num_samples-1:
 				break

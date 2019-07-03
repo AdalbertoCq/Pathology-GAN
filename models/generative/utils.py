@@ -271,7 +271,7 @@ def retrieve_csv_data(csv_file, limit_head=2, limit_row=None, sing=0):
     return dictionary
 
 
-def plot_data(data1, data2=None, filter1=[], filter2=[], dim=20, total_axis=20):
+def plot_data(data1, data2=None, filter1=[], filter2=[], dim=20, total_axis=20, same=False):
     mpl.rcParams['figure.figsize'] = dim, dim
     exclude_b = ['Epoch', 'Iteration']
     fig, ax1 = plt.subplots()
@@ -305,13 +305,16 @@ def plot_data(data1, data2=None, filter1=[], filter2=[], dim=20, total_axis=20):
     plt.legend(loc='upper left')
 
     if data2 is not None:
-    # Second data plot
+        # Second data plot
         exclude2 = list()
         exclude2.extend(exclude_b)
         exclude2.extend(filter2)
-        ax2 = ax1.twinx()  
-        ax2.set_ylabel(data2['name']) 
-        # ax1.set_color_cycle(['blue', 'green', 'orange']) 
+        if not same:   
+            ax2 = ax1.twinx()  
+            ax2.set_ylabel(data2['name']) 
+            plot = ax2
+        else:
+            plot = ax1
         for field in data2['data']:
             flag = False
             for exclude in exclude2:
@@ -319,7 +322,7 @@ def plot_data(data1, data2=None, filter1=[], filter2=[], dim=20, total_axis=20):
                     flag=True
                     break
             if flag: continue
-            ax2.plot(points, data2['data'][field], label='%s %s' %(data2['name'].split(' ')[1],field), color=colors[ind])
+            plot.plot(points, data2['data'][field], label='%s %s' %(data2['name'].split(' ')[1],field), color=colors[ind])
             ind += 1
         plt.xticks(points[0::every], data2['data']['Iteration'][0::every], rotation=45)
 

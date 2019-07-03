@@ -109,6 +109,15 @@ def losses(loss_type, output_fake, output_real, logits_fake, logits_real, real_i
         loss_dis_fake = tf.reduce_mean(tf.maximum(tf.zeros_like(logits_real), tf.ones_like(logits_real) + logits_fake))
         loss_dis = loss_dis_fake + loss_dis_real
 
+        '''
+        tf.reduce_mean(- tf.minimum(0., -1.0 + real_logits))
+        tf.reduce_mean(  tf.maximum(0.,  1.0 - logits_real))
+        
+        tf.reduce_mean(- tf.minimum(0., -1.0 - fake_logits))
+        tf.reduce_mean(  tf.maximum(0.,  1.0 + logits_fake))
+        '''
+
+        
         loss_gen = -tf.reduce_mean(logits_fake)
         loss_print += 'hinge '
 
