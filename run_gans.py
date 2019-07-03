@@ -29,11 +29,11 @@ if pathgan_type == 'unconditional':
 elif pathgan_type == 'er':
 	conditional = True
 	label_dim = 1
-	label_t = 'mlp'
+	label_t = 'cat'
 elif pathgan_type == 'survival':
 	conditional = True
 	label_dim = 0
-	label_t = 'mlp'
+	label_t = 'cat'
 else:
 	print('The available PathologyGAN options are:')
 	print('\tunconditional')
@@ -51,8 +51,7 @@ if batch_size is not None:
 else:
 	batch_size = 64
 
-
-model = 'BigGAN'
+model = 'PathologyGAN'
 
 main_path = os.path.dirname(os.path.realpath(__file__))
 dbs_path = os.path.dirname(os.path.realpath(__file__))
