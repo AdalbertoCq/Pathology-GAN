@@ -1,5 +1,9 @@
 # Pathology-GAN
 
+<p align="center">
+  <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/training_tw.gif" width="500">
+</p>
+
 ## Demo Materials:
 * Fake images with the smallest distance to real: For each row, the first image is a generated one, the remaining seven images are close Inception-V1 neighbors of the fake image:
 <p align="center">
