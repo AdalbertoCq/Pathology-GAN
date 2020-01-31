@@ -1,9 +1,9 @@
 # Pathology-GAN
-Corresponding code of [PathologyGAN](https://arxiv.org/abs/1907.02644) 
-  * **'Pathology GAN: Learning deep representations of cancer tissue' Adalberto Claudio Quiros, Roderick Murray-Smith, Ke Yuan. 2019.**
+<!--- Corresponding code of [PathologyGAN](https://arxiv.org/abs/1907.02644) 
+ * **'Pathology GAN: Learning deep representations of cancer tissue' Adalberto Claudio Quiros, Roderick Murray-Smith, Ke Yuan. 2019.** --->
 
 **Abstract:**
-*We apply Generative Adversarial Networks (GANs) to the domain of digital pathology. Current machine learning research for digital pathology focuses on diagnosis, but we suggest a different approach and advocate that generative models could help to understand and find fundamental morphological characteristics of cancer tissue. In this paper, we develop a framework which allows GANs to capture key tissue features, and present a vision of how these could link cancer tissue and DNA in the future. To this end, we trained our model on breast cancer tissue from a medium size cohort of 526 patients, producing high fidelity images. We further study how a range of relevant GAN evaluation metrics perform on this task, and propose to evaluate synthetic images with clinically/pathologically meaningful features. Our results show that these models are able to capture key morphological characteristics that link with phenotype, such as survival time and Estrogen-receptor (ER) status. Using an Inception-V1 network as feature extraction, our models achieve a Frechet Inception Distance (FID) of 18.4. We find that using pathology meaningful features on these metrics show consistent performance, with a FID of 8.21. Furthermore, we asked two expert pathologists to distinguish our generated images from real ones, finding no significant difference between them.*
+*We apply Generative Adversarial Networks (GANs) to the domain of digital pathology. Current machine learning research for digital pathology focuses on diagnosis, but we suggest a different approach and advocate that generative models could drive forward the understanding of morphological characteristics of cancer tissue. In this paper, we develop a framework which allows GANs to capture key tissue features and uses these characteristics to give structure to its latent space. To this end, we trained our model on 249K H&E breast cancer tissue images. We show that our model generates high quality images, with a Frechet Inception Distance (FID) of 16.65. We additionally assess the quality of the images with cancer tissue characteristics (e.g. count of cancer, lymphocytes, or stromal cells), using quantitative information to calculate the FID and showing consistent performance of 9.86. Additionally, the latent space of our model shows an interpretable structure and allows semantic vector operations that translate into tissue feature transformations. Furthermore, ratings from two expert pathologists found no significant difference between our generated tissue images from real ones.*
 
 <p align="center">
   <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/training_tw.gif" width="500">
@@ -39,11 +39,8 @@ Corresponding code of [PathologyGAN](https://arxiv.org/abs/1907.02644)
 <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/er_negative/individual_images/gen_15.png" width="100">
 </p>
 
-* Images:
-  * [Unconditional](https://github.com/AdalbertoCq/Pathology-GAN/tree/master/demos/unconditional)
-  * ER: [Positive](https://github.com/AdalbertoCq/Pathology-GAN/tree/master/demos/er_positive), [Negative](https://github.com/AdalbertoCq/Pathology-GAN/tree/master/demos/er_negative)
-  * Survival time: [Smaller five years](https://github.com/AdalbertoCq/Pathology-GAN/tree/master/demos/survival_negative), [Larger or equal to five years](https://github.com/AdalbertoCq/Pathology-GAN/tree/master/demos/survival_postive).
-
+* [Images](https://github.com/AdalbertoCq/Pathology-GAN/tree/master/demos/unconditional)
+  
 ## Datasets:
 H&E breast cancer databases from the Netherlands Cancer Institute (NKI) cohort and the Vancouver General Hospital (VGH) cohort with 248 and 328 patients respectevely. Each of them include tissue micro-array (TMA) images, along with clinical patient data such as survival time, and estrogen-receptor (ER) status. The original TMA images all have a resolution of 1128x720 pixels, and we split each of the images into smaller patches of 224x224, and allow them to overlap by 50%. We also perform data augmentation on these images, a rotation of 90 degrees, and 180 degrees, and vertical and horizontal inversion. We filter out images in which the tissue covers less than 70% of the area. In total this yields a training set of 249K images, and a test set of 62K.
 
