@@ -59,10 +59,7 @@ This is a sample of an original TMA image:
 
 ## Pre-trained Models:
 
-You can find pre-trained weights for the three different models here:
-* [Unconditional](https://figshare.com/s/0a311b5418f21ab2ebd4)
-* [Estrogen Receptor](https://figshare.com/s/01c98df16f9c1c01fa3e)
-* [Survival Time](https://figshare.com/s/fef199018a1b28ebcd28)
+You can find pre-trained weights for the three different models [here](https://figshare.com/s/0a311b5418f21ab2ebd4)
 
 ## Python Enviroment:
 ```
@@ -82,21 +79,9 @@ python                  3.6.7
 
 ## Load model and generate images:
 
-* Unconditional:
-  * Find the images in the 'evaluation' folder.
+* Find the images in the 'evaluation' folder:
 ```
-python3 generate_fake_samples.py --type unconditional --checkpoint ./PathologyGAN_unconditional_weights/PathologyGAN.ckt --num_samples 50
-```
-
-* Estrogen Receptor:
-  * Find the images in the 'evaluation' folder: er_positive/er_negative
-```
-python3 generate_fake_samples.py --type er --checkpoint ./PathologyGAN_er_weights/PathologyGAN.ckt --num_samples 50
-```
-* Survival Time:
-  * Find the images in the 'evaluation' folder: survival_positive(>5years)/survival_negative(<=5years).
-```
-python3 generate_fake_samples.py --type survival --checkpoint ./PathologyGAN_survival_weights/PathologyGAN.ckt --num_samples 50
+python3 generate_fake_samples.py --checkpoint ./PathologyGAN_unconditional_weights/PathologyGAN.ckt --num_samples 50
 ```
 
 ## Training PathologyGAN:
@@ -105,28 +90,19 @@ You can find a pre-processed HDF5 file with patches of 224x224x3 resolution [her
 Each model was trained on an NVIDIA Titan Xp 12 GB for 45 epochs, approximately 72 hours.
 
 ```
-usage: run_gans.py [-h] --type TYPE [--epochs EPOCHS]
+usage: run_gans.py [-h] [--epochs EPOCHS]
                    [--batch_size BATCH_SIZE]
 
 PathologyGAN trainer.
 
 optional arguments:
   -h, --help               show this help message and exit
-  --type TYPE              Type of PathologyGAN: unconditional, er, or survival.
   --epochs EPOCHS          Number epochs to run: default is 45 epochs.
   --batch_size BATCH_SIZE  Batch size, default size is 64.
 ```
 
-* Unconditional Pathology GAN:
+* Pathology GAN:
 ```
-python3 run_gans.py --type unconditional
-```
-* Estrogen Receptor Pathology GAN:
-```
-python3 run_gans.py --type er
-```
-* Survival Time Pathology GAN:
-```
-python3 run_gans.py --type survival
+python3 run_gans.py 
 ```
 
