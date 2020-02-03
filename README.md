@@ -81,7 +81,7 @@ python                  3.6.7
 
 * Find the images in the 'evaluation' folder:
 ```
-python3 generate_fake_samples.py --checkpoint ./PathologyGAN_unconditional_weights/PathologyGAN.ckt --num_samples 50
+python3 generate_fake_samples.py --checkpoint ./PathologyGAN.ckt --num_samples 50
 ```
 
 ## Training PathologyGAN:
