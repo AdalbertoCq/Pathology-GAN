@@ -90,19 +90,21 @@ You can find a pre-processed HDF5 file with patches of 224x224x3 resolution [her
 Each model was trained on an NVIDIA Titan Xp 12 GB for 45 epochs, approximately 72 hours.
 
 ```
-usage: run_gans.py [-h] [--epochs EPOCHS]
-                   [--batch_size BATCH_SIZE]
+usage: run_pathgan.py [-h] [--epochs EPOCHS] [--batch_size BATCH_SIZE]
+                      [--model MODEL]
 
 PathologyGAN trainer.
 
 optional arguments:
-  -h, --help               show this help message and exit
-  --epochs EPOCHS          Number epochs to run: default is 45 epochs.
-  --batch_size BATCH_SIZE  Batch size, default size is 64.
+  -h, --help            show this help message and exit
+  --epochs EPOCHS       Number epochs to run: default is 45 epochs.
+  --batch_size BATCH_SIZE
+                        Batch size, default size is 64.
+  --model MODEL         Model name.
 ```
 
 * Pathology GAN:
 ```
-python3 run_gans.py 
+python3 run_pathgan.py 
 ```
 
