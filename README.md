@@ -59,7 +59,7 @@ This is a sample of an original TMA image:
 
 ## Pre-trained Models:
 
-You can find pre-trained weights for the three different models [here](https://figshare.com/s/0a311b5418f21ab2ebd4)
+You can find pre-trained weights for the model [here](https://figshare.com/s/0a311b5418f21ab2ebd4)
 
 ## Python Enviroment:
 ```
