@@ -4,6 +4,10 @@ def optimizer(beta_1, loss_gen, loss_dis, loss_type, learning_rate_input_g, lear
     trainable_variables = tf.trainable_variables()
     generator_variables = [variable for variable in trainable_variables if variable.name.startswith('generator')]
     discriminator_variables = [variable for variable in trainable_variables if variable.name.startswith('discriminator')]
+    mapping_variables = [variable for variable in trainable_variables if variable.name.startswith('mapping_')]
+    if len(mapping_variables) != 0:
+        generator_variables.extend(mapping_variables)
+
 
     # Optimizer variable to track with optimizer is actually used.
     optimizer_print = ''
@@ -85,4 +89,31 @@ def vae_gan_optimizer(beta_1, loss_prior, loss_dist_likel, loss_gen, loss_dis, l
             print()
             
     return train_encoder, train_gen_decod, train_discriminator
+
+
+
+def optimizer_RaBigBiGAN(loss_gen, loss_dis, learning_rate_input_g, learning_rate_input_d, learning_rate_input_e, beta_1, beta_2=None, display=True):
+    loss_type = 'relativistic'
+    # Pull trainable variables and assign them per network.
+    trainable_variables = tf.trainable_variables()
+    generator_variables = [variable for variable in trainable_variables if variable.name.startswith('generator')]
+    mapping_variables = [variable for variable in trainable_variables if variable.name.startswith('mapping_network')]
+    generator_variables.extend(mapping_variables)
+    encoder_variables = [variable for variable in trainable_variables if variable.name.startswith('encoder')]
+    discriminator_variables = [variable for variable in trainable_variables if variable.name.startswith('discriminator')]
+
+    # Optimizer variable to track with optimizer is actually used.
+    optimizer_print = ''
+
+    # Handling Batch Normalization.
+    with tf.control_dependencies(tf.get_collection(tf.GraphKeys.UPDATE_OPS)):
+        train_discriminator = tf.train.AdamOptimizer(learning_rate=learning_rate_input_d, beta1=beta_1).minimize(loss_dis, var_list=discriminator_variables) 
+        train_generator = tf.train.AdamOptimizer(learning_rate=learning_rate_input_g, beta1=beta_1).minimize(loss_gen, var_list=generator_variables)
+        train_encoder = tf.train.AdamOptimizer(learning_rate=learning_rate_input_e, beta1=beta_1).minimize(loss_gen, var_list=encoder_variables)
+        optimizer_print += '%s - AdamOptimizer' % loss_type 
+        if display:
+            print('[Optimizer] Loss %s' % optimizer_print)
+            print()
+            
+    return train_discriminator, train_generator, train_encoder
 

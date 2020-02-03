@@ -1,9 +1,11 @@
 import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
-from models.score.utils import *
 import h5py
 import random
+from collections import OrderedDict
+from models.score.utils import *
+
 
 def get_top_nearest_neigbors(num_generated, nearneig, real_features_hdf5, gen_features_hdf5, maximum=False, random_select=False, save_path=None):
 
@@ -49,22 +51,27 @@ def get_top_nearest_neigbors(num_generated, nearneig, real_features_hdf5, gen_fe
         s_indices = s_indices.eval()
         s_distances = s_distances.eval()
         # For the images with top smallest distances, show nearest neighbors.
-        height, width, channels = real_img.shape[1:]
-        neighbors = dict()
-        grid = np.zeros((num_generated*height, (nearneig+1)*width, channels))
+        neighbors = OrderedDict()
         for i, ind in enumerate(s_indices1):
             ind = ind[0]
-            total = gen_img[ind]
             neighbors[ind] = list() 
             for j in range(nearneig):
                 neighbors[ind].append((s_indices[ind,j], s_distances[ind,j]))
-                real = real_img[s_indices[ind,j]]/255.
-                total = np.concatenate([total, real], axis=1)
-            grid[i*height:(i+1)*height, :, :] = total
-        plt.imshow(grid)
+
         if save_path is not None:
+            height, width, channels = real_img.shape[1:]
+            grid = np.zeros((num_generated*height, (nearneig+1)*width, channels))
+            for i, ind in enumerate(s_indices1):
+                ind = ind[0]
+                total = gen_img[ind]
+                for j in range(nearneig):
+                    real = real_img[s_indices[ind,j]]/255.
+                    total = np.concatenate([total, real], axis=1)
+                grid[i*height:(i+1)*height, :, :] = total
             plt.imsave(save_path, grid)
+
         return neighbors
+
 
 def find_top_nearest_neigbors(generated_list, nearneig, real_features_hdf5, gen_features_hdf5, maximum=False, save_path=None):
     real_img_hdf5 = real_features_hdf5.replace('_features_', '_images_')

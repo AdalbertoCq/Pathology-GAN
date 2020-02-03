@@ -130,6 +130,7 @@ def setup_csvs(csvs, model, losses):
 
 # Setup output folder.
 def setup_output(show_epochs, epochs, data, n_images, z_dim, data_out_path, model_name, restore, save_img):
+    os.umask(0o002)
     evaluation_path = os.path.join(data_out_path, 'evaluation')
     checkpoints_path = os.path.join(data_out_path, 'checkpoints')
     checkpoints = os.path.join(checkpoints_path, '%s.ckt' % model_name)

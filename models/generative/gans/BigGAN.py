@@ -1,5 +1,4 @@
 import tensorflow as tf
-import tensorflow_probability as tfp
 from data_manipulation.utils import *
 from models.evaluation.features import *
 from models.generative.ops import *
@@ -84,20 +83,26 @@ class BigGAN(GAN):
 		losses = ['Generator Loss', 'Discriminator Loss']
 		setup_csvs(csvs=csvs, model=self, losses=losses)
 		report_parameters(self, epochs, restore, data_out_path)
-
-		with tf.Session() as session:
+		
+		# Training session.
+		config = tf.ConfigProto()
+		config.gpu_options.allow_growth = True
+		with tf.Session(config=config) as session:
 			session.run(tf.global_variables_initializer())
 			if restore:
 				check = get_checkpoint(data_out_path)
 				saver.restore(session, check)
 				print('Restored model: %s' % check)
 
+			# Steady latent input
+			steady_latent = np.random.normal(size=(25, self.z_dim))
+
 			writer = tf.summary.FileWriter(os.path.join(data_out_path, 'tensorboard'), graph_def=session.graph_def)	
 			for epoch in range(1, epochs+1):
 				saver.save(sess=session, save_path=checkpoints)
 				for batch_images, batch_labels in data.training:
 					# Inputs.
-					z_batch = np.random.uniform(low=-1., high=1., size=(self.batch_size, self.z_dim))               
+					z_batch = np.random.normal(size=(self.batch_size, self.z_dim))
 					feed_dict = {self.z_input:z_batch, self.real_images:batch_images, self.learning_rate_input_g: self.learning_rate_g, self.learning_rate_input_d: self.learning_rate_d}
 					if self.conditional:
 						batch_labels = np.reshape(batch_labels[:, self.label_dim], (-1, 1))
@@ -133,8 +138,12 @@ class BigGAN(GAN):
 					run_epochs += 1
 				data.training.reset()
 
-				gen_samples, _ = show_generated(session=session, z_input=self.z_input, z_dim=self.z_dim, label_input=self.label_input, labels=batch_labels, output_fake=self.output_gen, n_images=25, show=False)
+				# After each epoch dump a sample of generated images.
+				gen_samples = session.run([self.output_gen], feed_dict=feed_dict)[0]
 				write_sprite_image(filename=os.path.join(data_out_path, 'images/gen_samples_epoch_%s.png' % epoch), data=gen_samples, metadata=False)
+				feed_dict = {self.z_input:steady_latent, self.real_images:batch_images}
+				gen_samples = session.run([self.output_gen], feed_dict=feed_dict)[0]
+				write_sprite_image(filename=os.path.join(data_out_path, 'images/gen_samples_steady_epoch_%s.png' % epoch), data=gen_samples, metadata=False)
 
 				# if evaluation is not None and epoch >= evaluation:
 					# generate_samples_epoch(session=session, model=self, data_shape=data.test.shape[1:], epoch=epoch, evaluation_path=os.path.join(data_out_path, 'evaluation'))

@@ -1,5 +1,4 @@
 import tensorflow as tf
-import tensorflow_probability as tfp
 from data_manipulation.utils import *
 from models.generative.ops import *
 from models.generative.utils import *

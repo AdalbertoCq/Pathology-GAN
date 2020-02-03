@@ -1,5 +1,21 @@
 import tensorflow as tf
 
+# StyleGAN: Apply a weighted input noise to a layer.
+def noise_input(inputs, scope):
+    with tf.variable_scope('noise_input_%s' % scope):
+
+        # Scale per channel as mentioned in the paper.
+        if len(inputs.shape) == 2:
+            noise_shape = [tf.shape(inputs)[0], inputs.shape[1]]
+        else:
+            noise_shape = [tf.shape(inputs)[0], 1, 1, inputs.shape[3]]
+        noise = tf.random_normal(noise_shape)
+        weights = tf.get_variable('noise_weights', shape=inputs.shape[-1], initializer=tf.contrib.layers.xavier_initializer())
+
+        outputs = inputs + tf.multiply(weights, noise)
+
+    return outputs
+
 def embedding(shape, init='xavier', power_iterations=1, display=True):
     if init=='normal':
         weight_init = tf.initializers.random_normal(stddev=0.02)
@@ -194,13 +210,15 @@ def dense(inputs, out_dim, scope, use_bias=True, spectral=False, power_iteration
     return output
 
 
-def residual_block(inputs, filter_size, stride, padding, scope, cond_label=None, is_training=True, normalization=None, use_bias=True, spectral=False, activation=None, 
+def residual_block(inputs, filter_size, stride, padding, scope, cond_label=None, is_training=True, normalization=None, noise_input_f=False, use_bias=True, spectral=False, activation=None, 
                    init='xavier', regularizer=None, power_iterations=1, display=True):
     channels = inputs.shape.as_list()[-1]
     with tf.variable_scope('resblock_%s' % scope):
         with tf.variable_scope('part_1'):
             # Convolutional
             net = convolutional(inputs, channels, filter_size, stride, padding, 'convolutional', scope=1, spectral=spectral, init=init, regularizer=regularizer, power_iterations=power_iterations, display=False)
+            if noise_input_f:
+               net = noise_input(inputs=net, scope=1)
             # Normalization
             if normalization is not None: 
                 net = normalization(inputs=net, training=is_training, c=cond_label, spectral=spectral, scope=1)
@@ -210,6 +228,8 @@ def residual_block(inputs, filter_size, stride, padding, scope, cond_label=None,
         with tf.variable_scope('part_2'):
             # Convolutional
             net = convolutional(net, channels, filter_size, stride, padding, 'convolutional', scope=1, spectral=spectral, init=init, regularizer=regularizer, power_iterations=power_iterations, display=False)
+            if noise_input_f:
+               net = noise_input(inputs=net, scope=2)
             # Normalization
             if normalization is not None: 
                 net = normalization(inputs=net, training=is_training, c=cond_label, spectral=spectral, scope=2)
@@ -224,6 +244,31 @@ def residual_block(inputs, filter_size, stride, padding, scope, cond_label=None,
         return output
 
 
+ # Definition of Residual Blocks for dense layers.
+def residual_block_dense(inputs, scope, cond_label=None, is_training=True, normalization=None, use_bias=True, spectral=False, activation=None, init='xavier', regularizer=None, power_iterations=1, display=True):
+    channels = inputs.shape.as_list()[-1]
+    with tf.variable_scope('resblock_dense_%s' % scope):
+        with tf.variable_scope('part_1'):
+            # Dense
+            net = dense(inputs, channels, scope=1, use_bias=use_bias, spectral=spectral, power_iterations=1, init=init, regularizer=regularizer, display=False)
+            # Normalization
+            if normalization is not None: 
+                net = normalization(inputs=net, training=is_training, c=cond_label, spectral=spectral, scope=1)
+            # Activation
+            if activation is not None: net = activation(net)
             
+        with tf.variable_scope('part_2'):
+            # Dense
+            net = dense(inputs, channels, scope=1, use_bias=use_bias, spectral=spectral, power_iterations=1, init=init, regularizer=regularizer, display=False)
+            # Normalization
+            if normalization is not None: 
+                net = normalization(inputs=net, training=is_training, c=cond_label, spectral=spectral, scope=1)
+            # Activation
+            if activation is not None: net = activation(net)
 
+        output = inputs + net
+
+        if display:
+            print('ResN Layer:     Scope=%15s Channels %5s Output Shape: %s' % (str(scope)[:14], channels, output.shape))
+        return output
 

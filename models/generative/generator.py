@@ -8,7 +8,7 @@ from models.generative.normalization import *
 display = True
 
 
-def mapping_network(z_input, z_dim, layers, spectral, activation, normalization, init='xavier', regularizer=None):
+def mapping_resnet(z_input, z_dim, layers, reuse, is_train, spectral, activation, normalization, init='xavier', regularizer=None):
 	if display:
 		print('MAPPING NETWORK INFORMATION:')
 		print('Layers:      ', layers)
@@ -16,17 +16,17 @@ def mapping_network(z_input, z_dim, layers, spectral, activation, normalization,
 		print('Activation:    ', activation)
 		print()
 
-	with tf.variable_scope('mapping_network'):
+	with tf.variable_scope('mapping_network', reuse=reuse):
 		net = z_input
 		for layer in range(layers):
-			net = normalization(inputs=net, training=True, c=None, spectral=None, scope=layer)
-			net = dense(inputs=net, out_dim=z_dim, spectral=spectral, init=init, regularizer=regularizer, scope=layer)
-		w_input = net
+			net = residual_block_dense(inputs=net, is_training=is_train, normalization=normalization, use_bias=True, spectral=spectral, activation=activation, init=init, regularizer=regularizer, scope=layer)
+		z_map = dense(inputs=net, out_dim=z_dim, spectral=spectral, init=init, regularizer=regularizer, scope=1)
+	print()
 
-	return w_input
+	return z_map
 
 
-def generator_resnet(z_input, image_channels, layers, spectral, activation, reuse, is_train, normalization, init='xavier', regularizer=None, cond_label=None, attention=None, up='upscale', bigGAN=False):
+def generator_resnet(z_input, image_channels, layers, spectral, activation, reuse, is_train, normalization, init='xavier', noise_input_f=False, regularizer=None, cond_label=None, attention=None, up='upscale', bigGAN=False):
 	channels = [32, 64, 128, 256, 512, 1024]
 	reversed_channel = list(reversed(channels[:layers]))
 
@@ -66,8 +66,6 @@ def generator_resnet(z_input, image_channels, layers, spectral, activation, reus
 
 		# Dense.			
 		net = dense(inputs=z_input_block, out_dim=1024, spectral=spectral, init=init, regularizer=regularizer, scope=1)			
-		# net = batch_norm(inputs=net, training=is_train)
-		# Introducing instance norm into dense layers.
 		net = normalization(inputs=net, training=is_train, c=label, spectral=spectral, scope='dense_1')
 		net = activation(net)
 
@@ -81,8 +79,6 @@ def generator_resnet(z_input, image_channels, layers, spectral, activation, reus
 
 		# Dense.
 		net = dense(inputs=net, out_dim=256*7*7, spectral=spectral, init=init, regularizer=regularizer, scope=2)				
-		# net = batch_norm(inputs=net, training=is_train)
-		# Introducing instance norm into dense layers.
 		net = normalization(inputs=net, training=is_train, c=label, spectral=spectral, scope='dense_2')
 		net = activation(net)
 		
@@ -100,15 +96,21 @@ def generator_resnet(z_input, image_channels, layers, spectral, activation, reus
 					label = tf.concat([cond_label, label], axis=-1)
 
 			# ResBlock.
-			net = residual_block(inputs=net, filter_size=3, stride=1, padding='SAME', scope=layer, is_training=is_train, spectral=spectral, init=init, regularizer=regularizer, 
+			net = residual_block(inputs=net, filter_size=3, stride=1, padding='SAME', scope=layer, is_training=is_train, spectral=spectral, init=init, regularizer=regularizer, noise_input_f=noise_input_f, 
 								 activation=activation, normalization=normalization, cond_label=label)
 			
 			# Attention layer. 
 			if attention is not None and net.shape.as_list()[1]==attention:
 				net = attention_block(net, spectral=True, init=init, regularizer=regularizer, scope=layers)
+				# ResBlock.
+				# net = residual_block(inputs=net, filter_size=3, stride=1, padding='SAME', scope=layer+layers, is_training=is_train, spectral=spectral, init=init, regularizer=regularizer, noise_input_f=noise_input_f, 
+									 # activation=activation, normalization=normalization, cond_label=label)
 			
 			# Up.
 			net = convolutional(inputs=net, output_channels=reversed_channel[layer], filter_size=2, stride=2, padding='SAME', conv_type=up, spectral=spectral, init=init, regularizer=regularizer, scope=layer)
+			if noise_input_f:
+				net = noise_input(inputs=net, scope=layer)
+			# net = normalization(inputs=net, training=is_train, c=label, spectral=spectral, scope=layer+layers)
 			net = normalization(inputs=net, training=is_train, c=label, spectral=spectral, scope=layer)
 			net = activation(net)
 			
@@ -119,29 +121,31 @@ def generator_resnet(z_input, image_channels, layers, spectral, activation, reus
 	return output
 
 
-def generator_decoder_resnet(z_input, image_channels, layers, spectral, activation, reuse, is_train, normalization, attention=None, up='upscale'):
+def generator_resnet_style(z_input, image_channels, layers, spectral, activation, reuse, is_train, normalization, init='xavier', noise_input_f=False, regularizer=None, cond_label=None, attention=None, up='upscale'):
 	channels = [32, 64, 128, 256, 512, 1024]
 	reversed_channel = list(reversed(channels[:layers]))
 
 	if display:
-		print('GENERATOR-DECODER INFORMATION:')
+		print('GENERATOR INFORMATION:')
 		print('Channels:      ', channels[:layers])
 		print('Normalization: ', normalization)
 		print('Activation:    ', activation)
 		print('Attention H/W: ', attention)
 		print()
 
-	with tf.variable_scope('generator_decoder', reuse=reuse):
-		# Doesn't work ReLU, tried.
+	with tf.variable_scope('generator', reuse=reuse):
+
+		z_input_block = z_input[:, :, 0]
+		label = z_input[:, :, 0]
 
 		# Dense.			
-		net = dense(inputs=z_input, out_dim=1024, spectral=spectral, scope=1)				
-		net = normalization(inputs=net, training=is_train)
+		net = dense(inputs=z_input_block, out_dim=1024, spectral=spectral, init=init, regularizer=regularizer, scope=1)			
+		net = normalization(inputs=net, training=is_train, c=label, spectral=spectral, scope='dense_1')
 		net = activation(net)
-		
+
 		# Dense.
-		net = dense(inputs=net, out_dim=256*7*7, spectral=spectral, scope=2)				
-		net = normalization(inputs=net, training=is_train)
+		net = dense(inputs=net, out_dim=256*7*7, spectral=spectral, init=init, regularizer=regularizer, scope=2)				
+		net = normalization(inputs=net, training=is_train, c=label, spectral=spectral, scope='dense_2')
 		net = activation(net)
 		
 		# Reshape
@@ -149,130 +153,29 @@ def generator_decoder_resnet(z_input, image_channels, layers, spectral, activati
 
 		for layer in range(layers):
 
+			label = z_input[:, :, layer]
 			# ResBlock.
-			net = residual_block(inputs=net, filter_size=3, stride=1, padding='SAME', scope=layer, is_training=is_train, spectral=spectral, activation=activation, normalization=normalization)
-		
+			net = residual_block(inputs=net, filter_size=3, stride=1, padding='SAME', scope=layer, is_training=is_train, spectral=spectral, init=init, regularizer=regularizer, noise_input_f=noise_input_f, 
+								 activation=activation, normalization=normalization, cond_label=label)
+			print('Z input:', layer)
+
 			# Attention layer. 
 			if attention is not None and net.shape.as_list()[1]==attention:
-				net = attention_block(net, spectral=True, scope=layers)
-		
-			# if (vae_dim/2.) == net.shape.as_list()[1]:
-			# 	lr_logs2_xi_z = convolutional(inputs=net, output_channels=reversed_channel[layer], filter_size=2, stride=2, padding='SAME', conv_type=up, spectral=spectral, scope='lr_logs2_xi_z')
-		
-			# if (vae_dim/2.) == net.shape.as_list()[1]:
-			# 	scope = 'lr_mean_xi_z'
-			# else:
-			# 	scope = layer
-
+				net = attention_block(net, spectral=True, init=init, regularizer=regularizer, scope=layers)
+				# ResBlock.
+				# net = residual_block(inputs=net, filter_size=3, stride=1, padding='SAME', scope=layer+layers, is_training=is_train, spectral=spectral, init=init, regularizer=regularizer, noise_input_f=noise_input_f, activation=activation, normalization=normalization, cond_label=label)
+				
+			label = z_input[:, :, layer+1]
 			# Up.
-			net = convolutional(inputs=net, output_channels=reversed_channel[layer], filter_size=2, stride=2, padding='SAME', conv_type=up, spectral=spectral, scope=layer)
-			net = normalization(inputs=net, training=is_train)
+			net = convolutional(inputs=net, output_channels=reversed_channel[layer], filter_size=2, stride=2, padding='SAME', conv_type=up, spectral=spectral, init=init, regularizer=regularizer, scope=layer)
+			if noise_input_f:
+				net = noise_input(inputs=net, scope=layer)
+			net = normalization(inputs=net, training=is_train, c=label, spectral=spectral, scope=layer)
 			net = activation(net)
-
-			# if vae_dim == net.shape.as_list()[1]:
-			# 	lr_mean_xi_z = sigmoid(net)
-
+			print('Z input:', layer+1)
 			
-		# Final outputs
-		logits = convolutional(inputs=net, output_channels=image_channels, filter_size=3, stride=1, padding='SAME', conv_type='convolutional', spectral=spectral, scope='mean_xi_z')
-		mean_xi_z = sigmoid(logits)
-
-		# Final outputs
-		logs2_xi_z = convolutional(inputs=net, output_channels=image_channels, filter_size=3, stride=1, padding='SAME', conv_type='convolutional', spectral=spectral, scope='logs2_xi_z')
-
-		
-	print()
-	# return output, lr_mean_xi_z, lr_logs2_xi_z
-	return mean_xi_z, logs2_xi_z
-
-
-def generator_resnet_cond(z_input, c_input, image_channels, layers, spectral, activation, reuse, is_train, normalization, up='upscale'):
-	channels = [32, 64, 128, 256, 512, 1024]
-	channels = [32, 64, 128, 256, 512, 1024]
-	reversed_channel = list(reversed(channels[:layers]))
-
-	if display:
-		print('Generator Information.')
-		print('Channels: ', channels[:layers])
-		print('Normalization: ', normalization)
-		print('Activation: ', activation)
-
-	with tf.variable_scope('generator', reuse=reuse):
-		# Doesn't work ReLU, tried.
-		# Z Input Shape = (None, 100)
-		# C Input Shape = (None, 20)
-		net = tf.concat([z_input, c_input], axis=1)
-
-		# Dense.			
-		net = dense(inputs=net, out_dim=1024, spectral=spectral, scope=1)				
-		net = normalization(inputs=net, training=is_train)
-		net = activation(net)
-		
-		# Dense.
-		net = dense(inputs=net, out_dim=256*7*7, spectral=spectral, scope=2)				
-		net = normalization(inputs=net, training=is_train)
-		net = activation(net)
-		
-		# Reshape
-		net = tf.reshape(tensor=net, shape=(-1, 7, 7, 256), name='reshape')
-
-		for layer in range(layers):
-			# ResBlock.
-			net = residual_block(inputs=net, filter_size=3, stride=1, padding='SAME', scope=layer, is_training=is_train, spectral=spectral,
-								 activation=activation, normalization=normalization, c_input=c_input)
-		
-			# Up.
-			net = convolutional(inputs=net, output_channels=reversed_channel[layer], filter_size=2, stride=2, padding='SAME', conv_type=up, spectral=spectral, scope=layer)
-			net = normalization(inputs=net, training=is_train, c=c_input, spectral=spectral)
-			net = activation(net)
-		
-		logits = convolutional(inputs=net, output_channels=image_channels, filter_size=3, stride=1, padding='SAME', conv_type='convolutional', spectral=spectral, scope='logits')
+		logits = convolutional(inputs=net, output_channels=image_channels, filter_size=3, stride=1, padding='SAME', conv_type='convolutional', spectral=spectral, init=init, regularizer=regularizer, scope='logits')
 		output = sigmoid(logits)
 		
-	print()
-	return output
-
-def generator(z_input, image_channels, layers, spectral, activation, reuse, is_train, normalization):
-	channels = [32, 64, 128, 256, 512, 1024]
-	reversed_channel = list(reversed(channels[:layers]))
-
-	if display:
-		print('Generator Information.')
-		print('Channels: ', channels[:layers])
-		print('Normalization: ', normalization)
-		print('Activation: ', activation)
-	
-	with tf.variable_scope('generator', reuse=reuse):
-		# Doesn't work ReLU, tried.
-		
-		# Dense.
-		net = dense(inputs=z_input, out_dim=1024, spectral=spectral, scope=1)				
-		net = normalization(inputs=net, training=is_train)
-		net = activation(net)
-
-		# Dense.
-		net = dense(inputs=net, out_dim=256*7*7, spectral=spectral, scope=2)				
-		net = normalization(inputs=net, training=is_train)
-		net = activation(net)
-
-		# Reshape
-		net = tf.reshape(tensor=net, shape=(-1, 7, 7, 256), name='reshape')
-
-		for layer in range(layers):
-			# Conv.
-			net = convolutional(inputs=net, output_channels=reversed_channel[layer], filter_size=2, stride=2, padding='SAME', conv_type='transpose', spectral=spectral, scope=2*(layer+1)-1)
-			net = normalization(inputs=net, training=is_train)
-			net = activation(net)
-
-			if layer != len(range(layers))-1:
-				# Conv.
-				net = convolutional(inputs=net, output_channels=reversed_channel[layer+1], filter_size=5, stride=1, padding='SAME', conv_type='convolutional', spectral=spectral, scope=2*(layer+1))
-				net = normalization(inputs=net, training=is_train)
-				net = activation(net)
-
-		# Conv.
-		logits = convolutional(inputs=net, output_channels=image_channels, filter_size=2, stride=2, padding='SAME', conv_type='transpose', spectral=spectral, scope='logits')
-		output = sigmoid(logits)
-	
 	print()
 	return output

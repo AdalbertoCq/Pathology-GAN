@@ -57,8 +57,66 @@ def generate_samples_epoch(session, model, data_shape, epoch, evaluation_path, n
 				ind += 1
 
 
-# Method to generate random samples from a model, it also dumps a sprite image width them.
-def generate_samples_from_checkpoint(model, data, data_out_path, checkpoint, label=0, num_samples=5000, batches=50):
+# Method to generate random samples from a model, it also dumps a sprite image width them. 
+# # Deprecated. 
+# def generate_samples_from_checkpoint(model, data, data_out_path, checkpoint, label=0, num_samples=5000, batches=50):
+# 	path = os.path.join(data_out_path, 'evaluation')
+# 	path = os.path.join(path, model.model_name)
+# 	path = os.path.join(path, data.dataset)
+# 	path = os.path.join(path, data.marker)
+# 	res = 'h%s_w%s_n%s' % tuple(data.test.shape[1:])
+# 	path = os.path.join(path, res)
+# 	img_path = os.path.join(path, 'generated_images')
+# 	if not os.path.isdir(path):
+# 		os.makedirs(path)
+# 		os.makedirs(img_path)
+
+# 	hdf5_path = os.path.join(path, 'hdf5_%s_%s_images_%s.h5' % (data.dataset, data.marker, model.model_name))
+# 	if not os.path.isfile(hdf5_path):
+# 		# H5 File.
+# 		img_shape = [num_samples] + data.test.shape[1:]
+# 		hdf5_file = h5py.File(hdf5_path, mode='w')
+# 		storage = hdf5_file.create_dataset(name='images', shape=img_shape, dtype=np.float32)
+# 		print('Generated Images path:', img_path)
+# 		print('H5 File path:', hdf5_path)
+
+# 		saver = tf.train.Saver()
+# 		with tf.Session() as session:
+# 			# Initializer and restoring model.
+# 			session.run(tf.global_variables_initializer())
+# 			saver.restore(session, checkpoint)
+
+# 			ind = 0
+# 			while ind < num_samples:
+# 				if model.conditional:
+# 					label_input = model.label_input
+# 					if label == 0:
+# 						labels = np.zeros((batches, 1))
+# 					else:
+# 						labels = np.ones((batches, 1))
+# 					labels = tf.keras.utils.to_categorical(y=labels, num_classes=2)
+# 				else:
+# 					label_input=None
+# 					labels=None
+# 				gen_samples, _ = show_generated(session=session, z_input=model.z_input, z_dim=model.z_dim, output_fake=model.output_gen, label_input=label_input, labels=labels, n_images=batches, show=False)
+
+# 				for i in range(batches):
+# 					if ind == num_samples:
+# 						break
+# 					storage[ind] = gen_samples[i, :, :, :]
+# 					plt.imsave('%s/gen_%s.png' % (img_path, ind), gen_samples[i, :, :, :])
+# 					ind += 1
+
+# 		print(ind, 'Generated Images')
+# 	else:
+# 		print('H5 File already created.')
+# 		print('H5 File Generated Samples')
+# 		print('\tFile:', hdf5_path)
+
+# 	return hdf5_path
+
+
+def generate_samples_from_checkpoint(model, data, data_out_path, checkpoint, num_samples=5000, batches=50):
 	path = os.path.join(data_out_path, 'evaluation')
 	path = os.path.join(path, model.model_name)
 	path = os.path.join(path, data.dataset)
@@ -71,41 +129,58 @@ def generate_samples_from_checkpoint(model, data, data_out_path, checkpoint, lab
 		os.makedirs(img_path)
 
 	hdf5_path = os.path.join(path, 'hdf5_%s_%s_images_%s.h5' % (data.dataset, data.marker, model.model_name))
+	
+	# Lazy access to one set of images, not used at all, just filling tensorflows complains.
+	for batch_images, batch_labels in data.training:
+		break
+	
 	if not os.path.isfile(hdf5_path):
-		# H5 File.
+		
+		# H5 File specifications and creation.
 		img_shape = [num_samples] + data.test.shape[1:]
+		latent_shape = [num_samples] + [model.z_dim]
 		hdf5_file = h5py.File(hdf5_path, mode='w')
-		storage = hdf5_file.create_dataset(name='images', shape=img_shape, dtype=np.float32)
+		img_storage = hdf5_file.create_dataset(name='images', shape=img_shape, dtype=np.float32)
+		z_storage = hdf5_file.create_dataset(name='z_latent', shape=latent_shape, dtype=np.float32)
+		if model.model_name == 'StylePathologyGAN':
+			w_storage = hdf5_file.create_dataset(name='w_latent', shape=latent_shape, dtype=np.float32)
 		print('Generated Images path:', img_path)
 		print('H5 File path:', hdf5_path)
 
 		saver = tf.train.Saver()
 		with tf.Session() as session:
+
 			# Initializer and restoring model.
 			session.run(tf.global_variables_initializer())
 			saver.restore(session, checkpoint)
 
 			ind = 0
 			while ind < num_samples:
-				if model.conditional:
-					label_input = model.label_input
-					if label == 0:
-						labels = np.zeros((batches, 1))
-					else:
-						labels = np.ones((batches, 1))
-					labels = tf.keras.utils.to_categorical(y=labels, num_classes=2)
-				else:
-					label_input=None
-					labels=None
-				gen_samples, _ = show_generated(session=session, z_input=model.z_input, z_dim=model.z_dim, output_fake=model.output_gen, label_input=label_input, labels=labels, n_images=batches, show=False)
+				# Image and latent generation for StylePathologyGAN.
+				if model.model_name == 'StylePathologyGAN':
+					z_latent_batch = np.random.normal(size=(batches, model.z_dim))
+					feed_dict = {model.z_input_1: z_latent_batch, model.real_images:batch_images}
+					w_latent_batch = session.run([model.w_latent_out], feed_dict=feed_dict)[0]
+					w_latent_in = np.tile(w_latent_batch[:,:, np.newaxis], [1, 1, model.layers+1])
+					feed_dict = {model.w_latent_in:w_latent_in, model.real_images:batch_images}
+					gen_img_batch = session.run([model.output_gen], feed_dict=feed_dict)[0]
+				
+				# Image and latent generation for PathologyGAN.
+				elif model.model_name == 'PathologyGAN':
+					z_latent_batch = np.random.normal(size=(batches, model.z_dim))
+					feed_dict = {model.z_input:z_latent_batch, model.real_images:batch_images}
+					gen_img_batch = session.run([model.output_gen], feed_dict=feed_dict)[0]
 
+				# Fill in storage for latent and image.
 				for i in range(batches):
 					if ind == num_samples:
 						break
-					storage[ind] = gen_samples[i, :, :, :]
-					plt.imsave('%s/gen_%s.png' % (img_path, ind), gen_samples[i, :, :, :])
+					img_storage[ind] = gen_img_batch[i, :, :, :]
+					z_storage[ind] = z_latent_batch[i, :]
+					if model.model_name == 'StylePathologyGAN':
+						w_storage[ind] = w_latent_batch[i, :]
+					plt.imsave('%s/gen_%s.png' % (img_path, ind), gen_img_batch[i, :, :, :])
 					ind += 1
-
 		print(ind, 'Generated Images')
 	else:
 		print('H5 File already created.')
@@ -464,6 +539,7 @@ def inception_tf_feature_activations(hdf5s, input_shape, batch_size):
 	images = tf.image.resize_bilinear(images, [299, 299])
 	out_incept_v3 = tfgan.eval.run_inception(images=images, output_tensor='pool_3:0')
 
+	hdf5s_features = list()
 	with tf.Session() as sess:
 		for hdf5_path in hdf5s:
 			hdf5_img_file = h5py.File(hdf5_path, mode='r')
@@ -477,6 +553,7 @@ def inception_tf_feature_activations(hdf5s, input_shape, batch_size):
 				os.remove(hdf5_feature_path)
 			hdf5_features_file = h5py.File(hdf5_feature_path, mode='w')
 			features_storage = hdf5_features_file.create_dataset(name='features', shape=features_shape, dtype=np.float32)
+			hdf5s_features.append(hdf5_feature_path)
 
 			print('Starting features extraction...')
 			print('\tImage File:', hdf5_path)
@@ -491,3 +568,4 @@ def inception_tf_feature_activations(hdf5s, input_shape, batch_size):
 			print('\tFeature File:', hdf5_feature_path)
 			print('\tNumber of samples:', ind)
 
+	return hdf5s_features
