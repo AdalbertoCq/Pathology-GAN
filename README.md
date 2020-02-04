@@ -15,17 +15,19 @@
   <p align="center">
     <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/neighbors_min_dist.jpg" width="400">
   </p>
+  
   * [Images](https://github.com/AdalbertoCq/Pathology-GAN/tree/master/demos/latent_space)
 
 * Vector operation examples:
   <p align="center">
-    <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/vector_op/op_0_72.jpg" width="400">
-    <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/vector_op/op_0_58.jpg" width="400">
-    <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/vector_op/op_1_0.jpg" width="400">
-    <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/vector_op/op_1_1.jpg" width="400">
-    <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/vector_op/op_2_76.jpg" width="400">
-    <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/vector_op/op_2_78.jpg" width="400">
+    <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/vector_op/op_0_72.jpg" width="350">
+    <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/vector_op/op_0_58.jpg" width="350">
+    <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/vector_op/op_1_0.jpg" width="300">
+    <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/vector_op/op_1_1.jpg" width="300">
+    <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/vector_op/op_2_76.jpg" width="350">
+    <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/vector_op/op_2_78.jpg" width="350">
   </p>
+
   * [Images](https://github.com/AdalbertoCq/Pathology-GAN/tree/master/demos/vector_op)
 
 * Vector operation examples:
