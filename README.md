@@ -11,8 +11,8 @@
 
 ## Demo Materials:
 
-* Latent space images:
-  - (a) Latent space of PathologyGAN with a mapping network and style mixing regularization, (b) Latent space of a PathologyGAN without those features. Classes 0 to 8 correspond to images with increasing number of cancer cells in the tissue, class 0 being the lowest in count and class 8 the largest.
+* **Latent space images**:
+  - **(a)** Latent space of PathologyGAN with a mapping network and style mixing regularization, **(b)** Latent space of a PathologyGAN without those features. Classes 0 to 8 correspond to images with increasing number of cancer cells in the tissue, class 0 being the lowest in count and class 8 the largest.
   <p align="center">
     <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/latent_space/UMAP_StylePathologyGAN_latent_space_zdim_200_dimension_2.jpg" width="400">
     <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/latent_space/UMAP_PathologyGAN_latent_space_zdim_200_dimension_2.jpg" width="400">
@@ -20,7 +20,7 @@
 
   * [Images](https://github.com/AdalbertoCq/Pathology-GAN/tree/master/demos/latent_space)
 
-* Vector operation examples:
+* **Vector operation examples**:
   <p align="center">
     <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/vector_op/op_0_72.jpg" width="350">
     <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/vector_op/op_0_58.jpg" width="350">
@@ -32,7 +32,7 @@
 
   * [Images](https://github.com/AdalbertoCq/Pathology-GAN/tree/master/demos/vector_op)
 
-* Vector operation examples:
+* **Nearest neighbor examples**:
   - Fake images with the smallest distance to real: For each row, the first image is a generated one, the remaining seven images are close Inception-V1 neighbors of the fake image:
   <p align="center">
     <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/neigbor_selected.jpg" width="400">
@@ -43,7 +43,7 @@
     <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/neighbors_min_dist.jpg" width="400">
   </p>
 
-* Individual Images:
+* **Individual Images**:
   <p align="center">
     <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/individual_images/gen_0.png" width="100">
     <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/individual_images/gen_1.png" width="100">
