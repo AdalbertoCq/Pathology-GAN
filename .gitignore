@@ -1,9 +1,10 @@
+demos/
 *.pyc
-dataset/*
-data model output/*
+dataset/
+data model output/
 .DS_Store
 *.swp
 .ipynb_checkpoints/*
 sftp-config.json_temp
 sftp-config.json
-demos/*
+
