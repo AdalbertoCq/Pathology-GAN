@@ -12,6 +12,7 @@
 ## Demo Materials:
 
 * Latent space images:
+  - (a) Latent space of PathologyGAN with a mapping network and style mixing regularization, (b) Latent space of a PathologyGAN without those features. Classes 0 to 8 correspond to images with increasing number of cancer cells in the tissue, class 0 being the lowest in count and class 8 the largest.
   <p align="center">
     <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/latent_space/UMAP_StylePathologyGAN_latent_space_zdim_200_dimension_2.jpg" width="400">
     <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/latent_space/UMAP_PathologyGAN_latent_space_zdim_200_dimension_2.jpg" width="400">
