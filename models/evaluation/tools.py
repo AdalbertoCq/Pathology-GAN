@@ -7,7 +7,7 @@ from collections import OrderedDict
 from models.score.utils import *
 
 
-def get_top_nearest_neigbors(num_generated, nearneig, real_features_hdf5, gen_features_hdf5, maximum=False, random_select=False, save_path=None):
+def get_top_nearest_neighbors(num_generated, nearneig, real_features_hdf5, gen_features_hdf5, maximum=False, random_select=False, save_path=None):
 
     real_img_hdf5 = real_features_hdf5.replace('_features_', '_images_')
     gen_img_hdf5 = gen_features_hdf5.replace('_features_', '_images_')
@@ -73,7 +73,7 @@ def get_top_nearest_neigbors(num_generated, nearneig, real_features_hdf5, gen_fe
         return neighbors
 
 
-def find_top_nearest_neigbors(generated_list, nearneig, real_features_hdf5, gen_features_hdf5, maximum=False, save_path=None):
+def find_top_nearest_neighbors(generated_list, nearneig, real_features_hdf5, gen_features_hdf5, maximum=False, save_path=None):
     real_img_hdf5 = real_features_hdf5.replace('_features_', '_images_')
     gen_img_hdf5 = gen_features_hdf5.replace('_features_', '_images_')
 
