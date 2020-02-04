@@ -20,7 +20,7 @@
 
   * [Images](https://github.com/AdalbertoCq/Pathology-GAN/tree/master/demos/latent_space)
 
-* **Vector operation examples**:
+* [**Vector operation examples**](https://github.com/AdalbertoCq/Pathology-GAN/tree/master/demos/vector_op):
   <p align="center">
     <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/vector_op/op_0_72.jpg" width="350">
     <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/vector_op/op_0_58.jpg" width="350">
@@ -29,8 +29,6 @@
     <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/vector_op/op_2_76.jpg" width="350">
     <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/vector_op/op_2_78.jpg" width="350">
   </p>
-
-  * [Images](https://github.com/AdalbertoCq/Pathology-GAN/tree/master/demos/vector_op)
 
 * **Nearest neighbor examples**:
   - Fake images with the smallest distance to real: For each row, the first image is a generated one, the remaining seven images are close Inception-V1 neighbors of the fake image:
