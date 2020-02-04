@@ -10,6 +10,23 @@
 </p>
 
 ## Demo Materials:
+
+* Latent space images:
+<p align="center">
+  <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/neighbors_min_dist.jpg" width="400">
+</p>
+  * [Images](https://github.com/AdalbertoCq/Pathology-GAN/tree/master/demos/latent_space)
+* Vector operation examples:
+<p align="center">
+  <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/vector_op/op_0_72.jpg" width="400">
+  <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/vector_op/op_0_58.jpg" width="400">
+  <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/vector_op/op_1_0.jpg" width="400">
+  <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/vector_op/op_1_1.jpg" width="400">
+  <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/vector_op/op_2_76.jpg" width="400">
+  <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/vector_op/op_2_78.jpg" width="400">
+</p>
+  * [Images](https://github.com/AdalbertoCq/Pathology-GAN/tree/master/demos/vector_op)
+
 * Fake images with the smallest distance to real: For each row, the first image is a generated one, the remaining seven images are close Inception-V1 neighbors of the fake image:
 <p align="center">
   <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/neigbor_selected.jpg" width="400">
@@ -39,7 +56,7 @@
 <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/individual_images/gen_15.png" width="100">
 </p>
 
-* [Images](https://github.com/AdalbertoCq/Pathology-GAN/tree/master/demos/)
+  * [Images](https://github.com/AdalbertoCq/Pathology-GAN/tree/master/demos/)
   
 ## Datasets:
 H&E breast cancer databases from the Netherlands Cancer Institute (NKI) cohort and the Vancouver General Hospital (VGH) cohort with 248 and 328 patients respectevely. Each of them include tissue micro-array (TMA) images, along with clinical patient data such as survival time, and estrogen-receptor (ER) status. The original TMA images all have a resolution of 1128x720 pixels, and we split each of the images into smaller patches of 224x224, and allow them to overlap by 50%. We also perform data augmentation on these images, a rotation of 90 degrees, and 180 degrees, and vertical and horizontal inversion. We filter out images in which the tissue covers less than 70% of the area. In total this yields a training set of 249K images, and a test set of 62K.
