@@ -13,8 +13,8 @@
 
 * Latent space images:
   <p align="center">
-    <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/UMAP_StylePathologyGAN_latent_space_zdim_200_dimension_2.jpg" width="400">
-    <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/UMAP_PathologyGAN_latent_space_zdim_200_dimension_2.jpg" width="400">
+    <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/UMAP_StylePathologyGAN_latent_space_zdim_200_dimension_2.jpg" width="200">
+    <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/UMAP_PathologyGAN_latent_space_zdim_200_dimension_2.jpg" width="200">
   </p>
 
   * [Images](https://github.com/AdalbertoCq/Pathology-GAN/tree/master/demos/latent_space)
