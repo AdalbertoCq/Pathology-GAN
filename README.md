@@ -11,14 +11,12 @@
 
 ## Demo Materials:
 
-* **Latent space images**:
+* [**Latent space images**](https://github.com/AdalbertoCq/Pathology-GAN/tree/master/demos/latent_space):
   - **(a)** Latent space of PathologyGAN with a mapping network and style mixing regularization, **(b)** Latent space of a PathologyGAN without those features. Classes 0 to 8 correspond to images with increasing number of cancer cells in the tissue, class 0 being the lowest in count and class 8 the largest.
   <p align="center">
     <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/latent_space/UMAP_StylePathologyGAN_latent_space_zdim_200_dimension_2.jpg" width="400">
     <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/latent_space/UMAP_PathologyGAN_latent_space_zdim_200_dimension_2.jpg" width="400">
   </p>
-
-  * [Images](https://github.com/AdalbertoCq/Pathology-GAN/tree/master/demos/latent_space)
 
 * [**Vector operation examples**](https://github.com/AdalbertoCq/Pathology-GAN/tree/master/demos/vector_op):
   <p align="center">
@@ -41,7 +39,7 @@
     <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/neighbors_min_dist.jpg" width="400">
   </p>
 
-* **Individual Images**:
+* [**Individual Images**](https://github.com/AdalbertoCq/Pathology-GAN/tree/master/demos/):
   <p align="center">
     <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/individual_images/gen_0.png" width="100">
     <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/individual_images/gen_1.png" width="100">
@@ -59,8 +57,6 @@
     <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/individual_images/gen_14.png" width="100">
     <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/individual_images/gen_15.png" width="100">
   </p>
-
-  * [Images](https://github.com/AdalbertoCq/Pathology-GAN/tree/master/demos/)
   
 ## Datasets:
 H&E breast cancer databases from the Netherlands Cancer Institute (NKI) cohort and the Vancouver General Hospital (VGH) cohort with 248 and 328 patients respectevely. Each of them include tissue micro-array (TMA) images, along with clinical patient data such as survival time, and estrogen-receptor (ER) status. The original TMA images all have a resolution of 1128x720 pixels, and we split each of the images into smaller patches of 224x224, and allow them to overlap by 50%. We also perform data augmentation on these images, a rotation of 90 degrees, and 180 degrees, and vertical and horizontal inversion. We filter out images in which the tissue covers less than 70% of the area. In total this yields a training set of 249K images, and a test set of 62K.
