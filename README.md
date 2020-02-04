@@ -108,7 +108,7 @@ optional arguments:
 python3 run_pathgan.py 
 ```
 
-## Find closest and furthest neighbors between generated images and real:
+## Find closest and furthest neighbors between generated and real images:
 * You will need the Inception-V1 features of the images in a HDF5 file format.
 ```
 usage: find_nearest_neighbors.py [-h] --out_path OUT_PATH --real_features
