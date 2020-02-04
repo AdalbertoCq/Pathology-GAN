@@ -12,34 +12,34 @@
 ## Demo Materials:
 * Fake images with the smallest distance to real: For each row, the first image is a generated one, the remaining seven images are close Inception-V1 neighbors of the fake image:
 <p align="center">
-  <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/unconditional/neigbor_selected.jpg" width="400">
+  <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/neigbor_selected.jpg" width="400">
 </p>
 
 * Hand-selected fake images: For each row, the first image is a generated one, the remaining seven images are close Inception-V1 neighbors of the fake image:
 <p align="center">
-  <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/unconditional/neighbors_min_dist.jpg" width="400">
+  <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/neighbors_min_dist.jpg" width="400">
 </p>
 
 * Individual Images:
 <p align="center">
-<img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/er_negative/individual_images/gen_0.png" width="100">
-<img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/er_negative/individual_images/gen_1.png" width="100">
-<img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/er_negative/individual_images/gen_2.png" width="100">
-<img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/er_negative/individual_images/gen_3.png" width="100">
-<img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/er_negative/individual_images/gen_4.png" width="100">
-<img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/er_negative/individual_images/gen_5.png" width="100">
-<img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/er_negative/individual_images/gen_6.png" width="100">
-<img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/er_negative/individual_images/gen_7.png" width="100">
-<img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/er_negative/individual_images/gen_8.png" width="100">
-<img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/er_negative/individual_images/gen_9.png" width="100"> <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/er_negative/individual_images/gen_10.png" width="100">
-<img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/er_negative/individual_images/gen_11.png" width="100">
-<img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/er_negative/individual_images/gen_12.png" width="100">
-<img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/er_negative/individual_images/gen_13.png" width="100">
-<img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/er_negative/individual_images/gen_14.png" width="100">
-<img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/er_negative/individual_images/gen_15.png" width="100">
+<img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/individual_images/gen_0.png" width="100">
+<img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/individual_images/gen_1.png" width="100">
+<img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/individual_images/gen_2.png" width="100">
+<img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/individual_images/gen_3.png" width="100">
+<img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/individual_images/gen_4.png" width="100">
+<img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/individual_images/gen_5.png" width="100">
+<img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/individual_images/gen_6.png" width="100">
+<img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/individual_images/gen_7.png" width="100">
+<img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/individual_images/gen_8.png" width="100">
+<img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/individual_images/gen_9.png" width="100"> <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/individual_images/gen_10.png" width="100">
+<img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/individual_images/gen_11.png" width="100">
+<img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/individual_images/gen_12.png" width="100">
+<img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/individual_images/gen_13.png" width="100">
+<img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/individual_images/gen_14.png" width="100">
+<img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/individual_images/gen_15.png" width="100">
 </p>
 
-* [Images](https://github.com/AdalbertoCq/Pathology-GAN/tree/master/demos/unconditional)
+* [Images](https://github.com/AdalbertoCq/Pathology-GAN/tree/master/demos/)
   
 ## Datasets:
 H&E breast cancer databases from the Netherlands Cancer Institute (NKI) cohort and the Vancouver General Hospital (VGH) cohort with 248 and 328 patients respectevely. Each of them include tissue micro-array (TMA) images, along with clinical patient data such as survival time, and estrogen-receptor (ER) status. The original TMA images all have a resolution of 1128x720 pixels, and we split each of the images into smaller patches of 224x224, and allow them to overlap by 50%. We also perform data augmentation on these images, a rotation of 90 degrees, and 180 degrees, and vertical and horizontal inversion. We filter out images in which the tissue covers less than 70% of the area. In total this yields a training set of 249K images, and a test set of 62K.
