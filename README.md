@@ -12,49 +12,51 @@
 ## Demo Materials:
 
 * Latent space images:
-<p align="center">
-  <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/neighbors_min_dist.jpg" width="400">
-</p>
+  <p align="center">
+    <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/neighbors_min_dist.jpg" width="400">
+  </p>
   * [Images](https://github.com/AdalbertoCq/Pathology-GAN/tree/master/demos/latent_space)
+
 * Vector operation examples:
-<p align="center">
-  <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/vector_op/op_0_72.jpg" width="400">
-  <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/vector_op/op_0_58.jpg" width="400">
-  <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/vector_op/op_1_0.jpg" width="400">
-  <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/vector_op/op_1_1.jpg" width="400">
-  <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/vector_op/op_2_76.jpg" width="400">
-  <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/vector_op/op_2_78.jpg" width="400">
-</p>
+  <p align="center">
+    <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/vector_op/op_0_72.jpg" width="400">
+    <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/vector_op/op_0_58.jpg" width="400">
+    <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/vector_op/op_1_0.jpg" width="400">
+    <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/vector_op/op_1_1.jpg" width="400">
+    <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/vector_op/op_2_76.jpg" width="400">
+    <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/vector_op/op_2_78.jpg" width="400">
+  </p>
   * [Images](https://github.com/AdalbertoCq/Pathology-GAN/tree/master/demos/vector_op)
 
-* Fake images with the smallest distance to real: For each row, the first image is a generated one, the remaining seven images are close Inception-V1 neighbors of the fake image:
-<p align="center">
-  <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/neigbor_selected.jpg" width="400">
-</p>
+* Vector operation examples:
+  - Fake images with the smallest distance to real: For each row, the first image is a generated one, the remaining seven images are close Inception-V1 neighbors of the fake image:
+  <p align="center">
+    <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/neigbor_selected.jpg" width="400">
+  </p>
 
-* Hand-selected fake images: For each row, the first image is a generated one, the remaining seven images are close Inception-V1 neighbors of the fake image:
-<p align="center">
-  <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/neighbors_min_dist.jpg" width="400">
-</p>
+  - Hand-selected fake images: For each row, the first image is a generated one, the remaining seven images are close Inception-V1 neighbors of the fake image:
+  <p align="center">
+    <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/neighbors_min_dist.jpg" width="400">
+  </p>
 
 * Individual Images:
-<p align="center">
-<img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/individual_images/gen_0.png" width="100">
-<img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/individual_images/gen_1.png" width="100">
-<img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/individual_images/gen_2.png" width="100">
-<img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/individual_images/gen_3.png" width="100">
-<img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/individual_images/gen_4.png" width="100">
-<img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/individual_images/gen_5.png" width="100">
-<img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/individual_images/gen_6.png" width="100">
-<img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/individual_images/gen_7.png" width="100">
-<img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/individual_images/gen_8.png" width="100">
-<img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/individual_images/gen_9.png" width="100"> <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/individual_images/gen_10.png" width="100">
-<img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/individual_images/gen_11.png" width="100">
-<img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/individual_images/gen_12.png" width="100">
-<img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/individual_images/gen_13.png" width="100">
-<img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/individual_images/gen_14.png" width="100">
-<img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/individual_images/gen_15.png" width="100">
-</p>
+  <p align="center">
+    <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/individual_images/gen_0.png" width="100">
+    <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/individual_images/gen_1.png" width="100">
+    <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/individual_images/gen_2.png" width="100">
+    <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/individual_images/gen_3.png" width="100">
+    <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/individual_images/gen_4.png" width="100">
+    <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/individual_images/gen_5.png" width="100">
+    <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/individual_images/gen_6.png" width="100">
+    <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/individual_images/gen_7.png" width="100">
+    <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/individual_images/gen_8.png" width="100">
+    <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/individual_images/gen_9.png" width="100"> <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/individual_images/gen_10.png" width="100">
+    <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/individual_images/gen_11.png" width="100">
+    <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/individual_images/gen_12.png" width="100">
+    <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/individual_images/gen_13.png" width="100">
+    <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/individual_images/gen_14.png" width="100">
+    <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/individual_images/gen_15.png" width="100">
+  </p>
 
   * [Images](https://github.com/AdalbertoCq/Pathology-GAN/tree/master/demos/)
   
