@@ -1,10 +1,10 @@
 demos/
-*.pyc
 dataset/
 data model output/
+.ipynb_checkpoints/
 .DS_Store
+*.pyc
 *.swp
-.ipynb_checkpoints/*
 sftp-config.json_temp
 sftp-config.json
 

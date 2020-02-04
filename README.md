@@ -81,7 +81,26 @@ python                  3.6.7
 
 * Find the images in the 'evaluation' folder:
 ```
-python3 generate_fake_samples.py --checkpoint ./PathologyGAN.ckt --num_samples 50
+usage: generate_fake_samples.py [-h] --checkpoint CHECKPOINT
+                                [--num_samples NUM_SAMPLES]
+                                [--batch_size BATCH_SIZE] --z_dim Z_DIM
+
+PathologyGAN fake image generator.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --checkpoint CHECKPOINT
+                        Path to pre-trained weights (.ckt) of PathologyGAN.
+  --num_samples NUM_SAMPLES
+                        Number of images to generate.
+  --batch_size BATCH_SIZE
+                        Batch size.
+  --z_dim Z_DIM         Latent space size.
+```
+
+* Usage example:  
+```
+python3 ./generate_fake_samples.py --num_samples 100 --batch_size 50 --z_dim 200 --checkpoint data_model_output/PathologyGAN/h224_w224_n3_zdim_200/checkpoints/PathologyGAN.ckt
 ```
 
 ## Training PathologyGAN:
