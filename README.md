@@ -18,6 +18,19 @@
     <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/latent_space/UMAP_StylePathologyGAN_latent_space_zdim_200_dimension_2.jpg" width="400">
     <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/latent_space/UMAP_PathologyGAN_latent_space_zdim_200_dimension_2.jpg" width="400">
   </p>
+ 
+
+* [**Linear Interpolation examples**](https://github.com/AdalbertoCq/Pathology-GAN/tree/master/demos/linear_interpolations):
+  - **(a)** Pathology GAN
+model interpolations with a mapping network and style mixing regularization.
+**(b)** Pathology GAN model interpolations without a mapping network and style
+mixing regularization. **(a)** includes an increasing population of cancer cells rather
+than a fading effect from model **(b)**.
+ <p align="center">
+    <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/linear_interpolations/linear_interpolation_StylePathologyGAN_latent_z_vs_BigGAN_0.png" width="700">
+    <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/linear_interpolations/linear_interpolation_StylePathologyGAN_latent_z_vs_BigGAN_1.png" width="700">
+  </p>
+ 
 
 * [**Vector operation examples**](https://github.com/AdalbertoCq/Pathology-GAN/tree/master/demos/vector_op):
   <p align="center">
