@@ -36,8 +36,8 @@ than a fading effect from model **(b)**.
   <p align="center">
     <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/vector_op/op_0_72.jpg" width="350">
     <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/vector_op/op_0_58.jpg" width="350">
-    <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/vector_op/op_1_0.jpg" width="250">
-    <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/vector_op/op_1_1.jpg" width="250">
+    <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/vector_op/op_1_0.jpg" width="275">
+    <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/vector_op/op_1_1.jpg" width="275">
     <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/vector_op/op_2_76.jpg" width="350">
     <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/vector_op/op_2_78.jpg" width="350">
   </p>
