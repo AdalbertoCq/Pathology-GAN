@@ -1,6 +1,5 @@
 # Pathology-GAN
-Corresponding code of [PathologyGAN](https://openreview.net/forum?id=CwgSEEQkad):
-* **Quiros A.C., Murray-Smith R., Yuan K. Pathology GAN: Learning deep representations of cancer tissue. Proceedings of The 3nd International Conference on Medical Imaging with Deep Learning (MIDL) 2020** 
+* **[Quiros A.C., Murray-Smith R., Yuan K. Pathology GAN: Learning deep representations of cancer tissue. Proceedings of The 3nd International Conference on Medical Imaging with Deep Learning (MIDL) 2020](https://openreview.net/forum?id=CwgSEEQkad)** 
  
 **Abstract:**
 
