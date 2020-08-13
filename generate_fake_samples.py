@@ -11,14 +11,20 @@ parser.add_argument('--checkpoint', dest='checkpoint', required=True, help='Path
 parser.add_argument('--num_samples', dest='num_samples', required=False, type=int, default=5000, help='Number of images to generate.')
 parser.add_argument('--batch_size', dest='batch_size', required=False, type=int, default=50, help='Batch size.')
 parser.add_argument('--z_dim', dest='z_dim', required=True, type=int, default=200, help='Latent space size.')
+parser.add_argument('--main_path', dest='main_path', default=None, type=str, help='Path for the output run.')
+parser.add_argument('--dbs_path', dest='dbs_path', type=str, default=None, help='Directory with DBs to use.')
 args = parser.parse_args()
 checkpoint = args.checkpoint
 num_samples = args.num_samples
 batch_size = args.batch_size
 z_dim = args.z_dim
+main_path = args.main_path
+dbs_path = args.dbs_path
 
-main_path = os.path.dirname(os.path.realpath(__file__))
-dbs_path = os.path.dirname(os.path.realpath(__file__))
+if main_path is None:
+	main_path = os.path.dirname(os.path.realpath(__file__))
+if dbs_path is None:
+	dbs_path = os.path.dirname(os.path.realpath(__file__))
 
 # Dataset information.
 data_out_path = os.path.join(main_path, 'data_model_output')
@@ -51,4 +57,8 @@ data = Data(dataset=dataset, marker=marker, patch_h=image_height, patch_w=image_
 
 with tf.Graph().as_default():
     pathgan = PathologyGAN(data=data, z_dim=z_dim, layers=layers, use_bn=use_bn, alpha=alpha, beta_1=beta_1, learning_rate_g=learning_rate_g, learning_rate_d=learning_rate_d, beta_2=beta_2, n_critic=n_critic, gp_coeff=gp_coeff, loss_type=loss_type, model_name='PathologyGAN')
-    generate_samples_from_checkpoint(model=pathgan, data=data, data_out_path=main_path, checkpoint=checkpoint, num_samples=num_samples, batches=batch_size)
+    gen_hdf5_path = generate_samples_from_checkpoint(model=pathgan, data=data, data_out_path=main_path, checkpoint=checkpoint, num_samples=num_samples, batches=batch_size)
+
+# Generate Inception features from fake images.
+with tf.Graph().as_default():
+    hdf5s_features = inception_tf_feature_activations(hdf5s=[gen_hdf5_path], input_shape=data.training.shape[1:], batch_size=batch_size)

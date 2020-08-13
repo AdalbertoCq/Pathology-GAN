@@ -7,16 +7,14 @@ from collections import OrderedDict
 from models.score.utils import *
 
 
-def get_top_nearest_neighbors(num_generated, nearneig, real_features_hdf5, gen_features_hdf5, maximum=False, random_select=False, save_path=None):
-
-    real_img_hdf5 = real_features_hdf5.replace('_features_', '_images_')
-    gen_img_hdf5 = gen_features_hdf5.replace('_features_', '_images_')
+def get_top_nearest_neighbors(num_generated, nearneig, real_features_hdf5, real_img_hdf5, gen_features_hdf5, gen_img_hdf5, maximum=False, random_select=False, save_path=None):
 
     real_features_file = h5py.File(real_features_hdf5, 'r')
     gen_features_file = h5py.File(gen_features_hdf5, 'r')
     real_img_file = h5py.File(real_img_hdf5, 'r')
     gen_img_file = h5py.File(gen_img_hdf5, 'r')
 
+    print(real_img_file.keys())
     real_features = real_features_file['features']
     gen_features = gen_features_file['features']
     real_img = real_img_file['images']
