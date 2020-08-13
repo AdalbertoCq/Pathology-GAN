@@ -167,9 +167,11 @@ python3 run_pathgan.py
 * You will need the Inception-V1 features of the images in a HDF5 file format.
 ```
 usage: find_nearest_neighbors.py [-h] --out_path OUT_PATH --real_features
-                                REAL_FEATURES_HDF5 --fake_features
-                                GEN_FEATURES_HDF5 --num_neigh NUM_NEIGH
-                                [--selected_list SELECTED_LIST [SELECTED_LIST ...]]
+                                 REAL_FEATURES_HDF5 --fake_features
+                                 GEN_FEATURES_HDF5 --real_images
+                                 REAL_IMAGES_HDF5 --fake_images
+                                 FAKE_IMAGES_HDF5 --num_neigh NUM_NEIGH
+                                 [--selected_list SELECTED_LIST [SELECTED_LIST ...]]
 
 PathologyGAN nearest neighbors finder.
 
@@ -180,6 +182,10 @@ optional arguments:
                         Path to the real features HDF5 file.
   --fake_features GEN_FEATURES_HDF5
                         Path to the fake features HDF5 file.
+  --real_images REAL_IMAGES_HDF5
+                        Path to the real images HDF5 file.
+  --fake_images FAKE_IMAGES_HDF5
+                        Path to the fake images HDF5 file.
   --num_neigh NUM_NEIGH
                         Number of nearest neighbors to show.
   --selected_list SELECTED_LIST [SELECTED_LIST ...]
@@ -188,5 +194,5 @@ optional arguments:
 ```
 Usage example:
 ```
-python3 find_nearest_neighbors.py --out_path project_path --real_features project_path/hdf5_nki_vgh_he_features_real.h5 --fake_features project_path/hdf5_nki_vgh_he_features_generated.h5 --num_neigh 10 --selected_list 100 1131 1604 2491 2700 2685 3031 303 3155 4724
+python3 find_nearest_neighbors.py --out_path project_path --real_features project_path/hdf5_nki_vgh_he_features_real.h5 --fake_features project_path/hdf5_nki_vgh_he_features_generated.h5 --real_images project_path/hdf5_nki_vgh_he_images_real.h5 --fake_images project_path/hdf5_nki_vgh_he_images_generated.h5 --num_neigh 10 --selected_list 100 1131 1604 2491 2700 2685 3031 303 3155 4724
 ```
