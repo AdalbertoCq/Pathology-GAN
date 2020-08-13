@@ -10,6 +10,12 @@
 </p>
 
 ## Demo Materials:
+* [**224x224 and 448x448 examples**](https://github.com/AdalbertoCq/Pathology-GAN/tree/master/demos/range_images):
+  - **(a)** Generated images with PathologyGAN, **(b)** Real tissue images.
+  <p align="center">
+    <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/range_images/224.jpg" width="700">
+    <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/range_images/448.png" width="700">
+  </p>
 
 * [**Latent space images**](https://github.com/AdalbertoCq/Pathology-GAN/tree/master/demos/latent_space):
   - **(a)** Latent space of PathologyGAN with a mapping network and style mixing regularization, **(b)** Latent space of a PathologyGAN without those features. Classes 0 to 8 correspond to images with increasing number of cancer cells in the tissue, class 0 being the lowest in count and class 8 the largest.
