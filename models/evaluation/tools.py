@@ -71,10 +71,7 @@ def get_top_nearest_neighbors(num_generated, nearneig, real_features_hdf5, real_
         return neighbors
 
 
-def find_top_nearest_neighbors(generated_list, nearneig, real_features_hdf5, gen_features_hdf5, maximum=False, save_path=None):
-    real_img_hdf5 = real_features_hdf5.replace('_features_', '_images_')
-    gen_img_hdf5 = gen_features_hdf5.replace('_features_', '_images_')
-
+def find_top_nearest_neighbors(generated_list, nearneig, real_features_hdf5, real_img_hdf5, gen_features_hdf5, gen_img_hdf5, maximum=False, save_path=None):
     real_features_file = h5py.File(real_features_hdf5, 'r')
     gen_features_file = h5py.File(gen_features_hdf5, 'r')
     real_img_file = h5py.File(real_img_hdf5, 'r')
