@@ -120,6 +120,7 @@ python                  3.6.7
 usage: generate_fake_samples.py [-h] --checkpoint CHECKPOINT
                                 [--num_samples NUM_SAMPLES]
                                 [--batch_size BATCH_SIZE] --z_dim Z_DIM
+                                [--main_path MAIN_PATH] [--dbs_path DBS_PATH]
 
 PathologyGAN fake image generator.
 
@@ -132,11 +133,14 @@ optional arguments:
   --batch_size BATCH_SIZE
                         Batch size.
   --z_dim Z_DIM         Latent space size.
+  --main_path MAIN_PATH
+                        Path for the output run.
+  --dbs_path DBS_PATH   Directory with DBs to use.
 ```
 
 * Usage example:  
 ```
-python3 ./generate_fake_samples.py --num_samples 100 --batch_size 50 --z_dim 200 --checkpoint data_model_output/PathologyGAN/h224_w224_n3_zdim_200/checkpoints/PathologyGAN.ckt
+python3 ./generate_fake_samples.py --num_samples 100 --batch_size 50 --z_dim 200 --checkpoint data_model_output/PathologyGAN/h224_w224_n3_zdim_200/checkpoints/PathologyGAN.ckt --main_path path_for_folder_to_dump_evaluation --dbs_path path_to_main_folde_with_dataset_folder
 ```
 
 ## Training PathologyGAN:
