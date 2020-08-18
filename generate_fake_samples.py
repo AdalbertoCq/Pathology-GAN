@@ -11,15 +11,23 @@ parser.add_argument('--checkpoint', dest='checkpoint', required=True, help='Path
 parser.add_argument('--num_samples', dest='num_samples', required=False, type=int, default=5000, help='Number of images to generate.')
 parser.add_argument('--batch_size', dest='batch_size', required=False, type=int, default=50, help='Batch size.')
 parser.add_argument('--z_dim', dest='z_dim', required=True, type=int, default=200, help='Latent space size.')
+parser.add_argument('--dataset', dest='dataset', type=str, default='vgh_nki', help='Dataset to use.')
+parser.add_argument('--marker', dest='marker', type=str, default='he', help='Marker of dataset to use.')
+parser.add_argument('--img_size', dest='img_size', type=int, default=224, help='Image size for the model.')
 parser.add_argument('--main_path', dest='main_path', default=None, type=str, help='Path for the output run.')
 parser.add_argument('--dbs_path', dest='dbs_path', type=str, default=None, help='Directory with DBs to use.')
+parser.add_argument('--model', dest='model', type=str, default='PathologyGAN', help='Model name.')
 args = parser.parse_args()
 checkpoint = args.checkpoint
 num_samples = args.num_samples
 batch_size = args.batch_size
 z_dim = args.z_dim
+dataset = args.dataset
+marker = args.marker
+img_size = args.img_size
 main_path = args.main_path
 dbs_path = args.dbs_path
+model = args.model
 
 if main_path is None:
 	main_path = os.path.dirname(os.path.realpath(__file__))
@@ -28,12 +36,10 @@ if dbs_path is None:
 
 # Dataset information.
 data_out_path = os.path.join(main_path, 'data_model_output')
-data_out_path = os.path.join(data_out_path, 'PathologyGAN')
-image_width = 224
-image_height = 224
+data_out_path = os.path.join(data_out_path, model)
+image_width = img_size
+image_height = img_size
 image_channels = 3
-dataset='vgh_nki'
-marker='he'
 offset = None
 name_run = 'h%s_w%s_n%s' % (image_height, image_width, image_channels)
 data_out_path = '%s/%s' % (data_out_path, name_run)
