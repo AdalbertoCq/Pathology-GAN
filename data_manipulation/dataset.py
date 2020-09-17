@@ -3,7 +3,7 @@ import h5py
 
 
 class Dataset:
-    def __init__(self, hdf5_path, patch_h, patch_w, n_channels, batch_size, data_type, thresholds=(), labels=True, empty=False):
+    def __init__(self, hdf5_path, patch_h, patch_w, n_channels, batch_size, thresholds=(), labels=True, empty=False):
 
         self.i = 0
         self.batch_size = batch_size
@@ -12,7 +12,6 @@ class Dataset:
         self.patch_h = patch_h
         self.patch_w = patch_w
         self.n_channels = n_channels
-        self.data_type = data_type
 
         self.labels_flag = labels
         self.hdf5_path = hdf5_path
@@ -38,9 +37,22 @@ class Dataset:
 
     def get_hdf5_data(self):
         hdf5_file = h5py.File(self.hdf5_path, 'r')
-        images = hdf5_file['%s_img' % self.data_type]
+
+        # Legacy code for initial naming of images, label keys.
+        naming = list(hdf5_file.keys())
+        if 'images' in naming:
+            image_name = 'images'
+            labels_name = 'labels'       
+        else:
+            for naming in list(hdf5_file.keys()):     
+                if 'img' in naming or 'image' in naming:
+                    image_name = naming
+                elif 'labels' in naming:
+                    labels_name = naming
+
+        images = hdf5_file[image_name]
         if self.labels_flag:
-            labels = hdf5_file['%s_labels' % self.data_type]
+            labels = hdf5_file[labels_name]
         else:
             labels = list()
         return images, labels
