@@ -101,7 +101,7 @@ def generator_resnet(z_input, image_channels, layers, spectral, activation, reus
 			
 			# Attention layer. 
 			if attention is not None and net.shape.as_list()[1]==attention:
-				net = attention_block(net, spectral=True, init=init, regularizer=regularizer, scope=layer)
+				net = attention_block(net, spectral=True, init=init, regularizer=regularizer, scope=layers)
 				# ResBlock.
 				# net = residual_block(inputs=net, filter_size=3, stride=1, padding='SAME', scope=layer+layers, is_training=is_train, spectral=spectral, init=init, regularizer=regularizer, noise_input_f=noise_input_f, 
 									 # activation=activation, normalization=normalization, cond_label=label)
