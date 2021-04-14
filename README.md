@@ -18,18 +18,18 @@
 ## Citation
 ```
 @InProceedings{pmlr-v121-quiros20a, 
-	    Title = {PathologyGAN: Learning deep representations of cancer tissue},
-	    Author = {Quiros, Adalberto Claudio and Murray-Smith, Roderick and Yuan, Ke}, 
+     Title = {PathologyGAN: Learning deep representations of cancer tissue},
+     Author = {Quiros, Adalberto Claudio and Murray-Smith, Roderick and Yuan, Ke}, 
      Booktitle = {Proceedings of the Third Conference on Medical Imaging with Deep Learning}, 
-     year = {2020}
+     Year = {2020}
 }
 
 @article{quirosmelba20,
-	    Title = {PathologyGAN: Learning deep representations of cancer tissue},
-	    Author = {Quiros, Adalberto Claudio and Murray-Smith, Roderick and Yuan, Ke}, 
-	    Journal = {Machine Learning for Biomedical Imaging (MELBA)},
+     Title = {PathologyGAN: Learning deep representations of cancer tissue},
+     Author = {Quiros, Adalberto Claudio and Murray-Smith, Roderick and Yuan, Ke}, 
+     Journal = {Machine Learning for Biomedical Imaging (MELBA)},
      Note = {MIDL 2020 Special Issue},
-	    year = {2021}
+     Year = {2021}
 }
 ```
 
