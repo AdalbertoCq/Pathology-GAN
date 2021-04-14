@@ -15,6 +15,24 @@
   <img src="https://github.com/AdalbertoCq/Pathology-GAN/blob/master/demos/PathologyGAN_training.gif" width="500">
 </p>
 
+## Citation
+```
+@InProceedings{pmlr-v121-quiros20a, 
+	    Title = {PathologyGAN: Learning deep representations of cancer tissue},
+	    Author = {Quiros, Adalberto Claudio and Murray-Smith, Roderick and Yuan, Ke}, 
+     Booktitle = {Proceedings of the Third Conference on Medical Imaging with Deep Learning}, 
+     year = {2020}
+}
+
+@article{quirosmelba20,
+	    Title = {PathologyGAN: Learning deep representations of cancer tissue},
+	    Author = {Quiros, Adalberto Claudio and Murray-Smith, Roderick and Yuan, Ke}, 
+	    Journal = {Machine Learning for Biomedical Imaging (MELBA)},
+     Note = {MIDL 2020 Special Issue},
+	    year = {2021}
+}
+```
+
 ## Demo Materials:
 * [**224x224 and 448x448 examples**](https://github.com/AdalbertoCq/Pathology-GAN/tree/master/demos/range_images):
   - **(a)** Generated images with PathologyGAN, **(b)** Real tissue images.
