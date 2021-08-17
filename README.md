@@ -119,7 +119,7 @@ This is a sample of an original TMA image:
 
 ## Pre-trained Models:
 
-You can find pre-trained weights for the breast cancer trained model [here](https://figshare.com/s/0a311b5418f21ab2ebd4) and colorectal cancer trained model [here](https://figshare.com/articles/software/PathologyGAN_CRC_tar_gz/15029382)
+You can find pre-trained weights for the breast cancer trained model [here](https://figshare.com/s/0a311b5418f21ab2ebd4) and colorectal cancer trained model [here (Pending)]()
 
 ## Python Enviroment:
 ```
